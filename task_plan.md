@@ -82,40 +82,41 @@ Confirmed with the user:
 | Separation | A Parent tab behind a 4-digit PIN |
 
 ### Phase v2.1: Data model
-- [ ] Categories move from a hardcoded constant into stored data, seeded with
+- [x] Categories move from a hardcoded constant into stored data, seeded with
       today's defaults on first run
-- [ ] Category delete is a soft archive, so history keeps its real label
-- [ ] New `Chore` entity: label, emoji, payout
-- [ ] Per-child allowance: amount, cadence, anchor day, last paid
-- [ ] Per-child spending limits: per purchase and per week
-- [ ] Parent PIN in settings, stored as a salted hash
-- [ ] `normalizeSnapshot` migrates v1 files, which have none of these
-- **Status:** pending
+- [x] Category delete is a soft archive, so history keeps its real label
+- [x] New `Chore` entity: label, emoji, payout
+- [x] Per-child allowance: amount, cadence, anchor day, last paid
+- [x] Per-child spending limits: per purchase and per week
+- [x] Parent PIN in settings, stored as a salted hash
+- [x] `normalizeSnapshot` migrates v1 files, which have none of these
+- **Status:** complete
 
 ### Phase v2.2: Rules as pure functions
-- [ ] `allowance.ts`: which allowance dates are owed, given the last paid date
-- [ ] `limits.ts`: does this spend break a limit, and which one
-- [ ] Both fully unit-tested before any UI touches them
-- **Status:** pending
+- [x] `allowance.ts`: which allowance dates are owed, given the last paid date
+- [x] `limits.ts`: does this spend break a limit, and which one
+- [x] Both unit-tested before any UI touched them (17 tests)
+- **Status:** complete
 
 ### Phase v2.3: Parent view behind the PIN
-- [ ] PIN set on first use, entered thereafter; unlock lives in memory only,
+- [x] PIN set on first use, entered thereafter; unlock lives in memory only,
       so closing the app re-locks it
-- [ ] Manage ways to earn and ways to spend
-- [ ] Manage chores and their payouts
-- [ ] Set each child's allowance and limits
-- **Status:** pending
+- [x] Manage ways to earn and ways to spend
+- [x] Manage chores and their payouts
+- [x] Set each child's allowance and limits
+- **Status:** complete
 
 ### Phase v2.4: What the child sees
-- [ ] Chore buttons that claim a fixed payout in one tap
-- [ ] Allowance credited automatically for every date owed since last time
-- [ ] A blocked spend explains which limit it broke and by how much
-- **Status:** pending
+- [x] Chore buttons that claim a fixed payout in one tap
+- [x] Allowance credited automatically for every date owed since last time
+- [x] A blocked spend explains which limit it broke and by how much
+- **Status:** complete
 
 ### Phase v2.5: Verify
-- [ ] Tests for migration, allowance dates, limit checks
-- [ ] Drive the real app: set a rule as parent, then hit it as a child
-- **Status:** pending
+- [x] Tests for migration, allowance dates, limit checks — 65 green, up from 29
+- [x] Drove the real app: set a $2.00 per-purchase limit on one child, claimed a
+      $3.50 chore in one tap, then had a $5.00 spend blocked with the reason
+- **Status:** complete
 
 ### Honest note on the PIN
 Stored in the browser, a PIN stops a young child wandering into the parent tab.

@@ -618,3 +618,298 @@
     gap: calc(var(--step) * 3);
   }
 }
+
+/* Parent view ------------------------------------------------------------- */
+
+.topbar__right {
+  display: flex;
+  gap: var(--step);
+}
+
+.parent__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: calc(var(--step) * 2);
+}
+
+.parent__head h2 {
+  font-size: 1.5rem;
+}
+
+.parent__lock {
+  padding: 6px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--ink-soft);
+  color: var(--ink-soft);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step);
+  margin-bottom: calc(var(--step) * 3);
+}
+
+.tab {
+  padding: 8px 16px;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-pill);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.tab--on {
+  background: var(--panel);
+  color: var(--white);
+  box-shadow: var(--drop-sm);
+}
+
+.rules__intro {
+  margin: 0 0 calc(var(--step) * 2);
+  max-width: 60ch;
+  color: var(--ink-soft);
+}
+
+.rules__note {
+  margin: calc(var(--step) * 2) 0 0;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.rules__empty {
+  padding: calc(var(--step) * 3) 0;
+  color: var(--ink-soft);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row,
+.addrow {
+  display: flex;
+  align-items: center;
+  gap: var(--step);
+  padding: var(--step);
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-slip);
+}
+
+.addrow {
+  margin-top: calc(var(--step) * 2);
+  background: transparent;
+  border-style: dashed;
+}
+
+.row__emoji {
+  width: 52px;
+  flex: none;
+  padding: 8px;
+  text-align: center;
+  font-size: 1.25rem;
+  background: var(--paper);
+  border: 2px solid var(--ink-soft);
+  border-radius: var(--radius-slip);
+}
+
+.row__label {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  background: var(--paper);
+  border: 2px solid var(--ink-soft);
+  border-radius: var(--radius-slip);
+}
+
+.row__pay {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.row__pay-input {
+  width: 90px;
+  flex: none;
+  padding: 8px 10px;
+  background: var(--paper);
+  border: 2px solid var(--ink-soft);
+  border-radius: var(--radius-slip);
+}
+
+.row__remove {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  background: var(--paper);
+  border: 2px solid var(--ink-soft);
+  border-radius: var(--radius-pill);
+  line-height: 1;
+}
+
+.row__remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.rulecard {
+  padding: calc(var(--step) * 2);
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-tin);
+  box-shadow: var(--drop-sm);
+}
+
+.rulecard + .rulecard {
+  margin-top: calc(var(--step) * 2);
+}
+
+.rulecard h3 {
+  margin-bottom: calc(var(--step) * 1.5);
+  font-size: 1.25rem;
+}
+
+.rulecard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: calc(var(--step) * 1.5);
+}
+
+.rulecard__note,
+.rulecard__summary {
+  margin: calc(var(--step) * 1.5) 0 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.rulecard__summary {
+  padding-top: var(--step);
+  border-top: 2px dashed var(--paper-deep);
+}
+
+.rulecard__actions {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--step) * 1.5);
+  margin-top: calc(var(--step) * 2);
+}
+
+.rulecard__saved {
+  font-size: 0.9375rem;
+  color: var(--money-in);
+}
+
+/* Jobs a child can claim -------------------------------------------------- */
+
+.jobs {
+  margin-bottom: calc(var(--step) * 3);
+}
+
+.jobs__title {
+  margin-bottom: var(--step);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-family: var(--font-text);
+}
+
+.jobs__list {
+  display: grid;
+  /* Wide enough that a job named in three or four words is readable rather
+     than clipped to its first word. */
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--step);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.job {
+  display: flex;
+  align-items: center;
+  gap: var(--step);
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--coin);
+  border: var(--edge);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--drop-sm);
+}
+
+.job:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.job__emoji {
+  font-size: 1.25rem;
+}
+
+.job__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.job__pay {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* Parent PIN gate --------------------------------------------------------- */
+
+.gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--step);
+  padding: calc(var(--step) * 4) calc(var(--step) * 2);
+  text-align: center;
+}
+
+.gate__lock {
+  margin: 0;
+  font-size: 3rem;
+}
+
+.gate__text {
+  margin: 0 0 var(--step);
+  max-width: 42ch;
+  color: var(--ink-soft);
+}
+
+.gate__form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--step) * 2);
+  width: min(280px, 100%);
+  text-align: left;
+}
+
+.input--pin {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+
+.gate__caveat {
+  margin-top: calc(var(--step) * 4);
+  max-width: 44ch;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}

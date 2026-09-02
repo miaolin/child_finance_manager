@@ -9,10 +9,24 @@
  * changing a single call site.
  */
 
-import type { Child, Id, Settings, Snapshot, Transaction } from '../domain/types.ts'
+import type {
+  Category,
+  Child,
+  Chore,
+  Id,
+  Settings,
+  Snapshot,
+  Transaction,
+} from '../domain/types.ts'
 
 export type NewChild = Pick<Child, 'name' | 'emoji' | 'color'>
-export type ChildEdits = Partial<NewChild>
+export type ChildEdits = Partial<NewChild & Pick<Child, 'allowance' | 'limits'>>
+
+export type NewCategory = Pick<Category, 'label' | 'emoji' | 'appliesTo'>
+export type CategoryEdits = Partial<Pick<Category, 'label' | 'emoji'>>
+
+export type NewChore = Pick<Chore, 'label' | 'emoji' | 'payoutCents'>
+export type ChoreEdits = Partial<NewChore>
 
 export type NewTransaction = Pick<
   Transaction,
@@ -31,6 +45,17 @@ export interface FinanceRepo {
   addTransaction(tx: NewTransaction): Promise<Transaction>
   updateTransaction(id: Id, edits: TransactionEdits): Promise<Transaction>
   removeTransaction(id: Id): Promise<void>
+
+  listCategories(): Promise<Category[]>
+  addCategory(category: NewCategory): Promise<Category>
+  updateCategory(id: Id, edits: CategoryEdits): Promise<Category>
+  /** Archives rather than deletes, so recorded entries keep their label. */
+  archiveCategory(id: Id): Promise<void>
+
+  listChores(): Promise<Chore[]>
+  addChore(chore: NewChore): Promise<Chore>
+  updateChore(id: Id, edits: ChoreEdits): Promise<Chore>
+  archiveChore(id: Id): Promise<void>
 
   getSettings(): Promise<Settings>
   updateSettings(edits: Partial<Settings>): Promise<Settings>

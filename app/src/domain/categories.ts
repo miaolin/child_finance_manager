@@ -1,10 +1,11 @@
-import type { Category } from './types.ts'
+import type { Category, Id, TransactionKind } from './types.ts'
 
 /**
- * Fixed for v1. Emoji carry the meaning so a child who cannot read fluently
- * can still pick the right one.
+ * Seeded on first run, then owned by the parent — these are a starting point,
+ * not a fixed list. Emoji carry the meaning so a child who cannot read
+ * fluently can still pick the right one.
  */
-export const CATEGORIES: Category[] = [
+export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'allowance', label: 'Allowance', emoji: '🗓️', appliesTo: 'in' },
   { id: 'chores', label: 'Chores', emoji: '🧹', appliesTo: 'in' },
   { id: 'gift', label: 'Gift', emoji: '🎁', appliesTo: 'in' },
@@ -23,13 +24,31 @@ export const CATEGORIES: Category[] = [
   { id: 'other-out', label: 'Something else', emoji: '🛍️', appliesTo: 'out' },
 ]
 
-const BY_ID = new Map(CATEGORIES.map((c) => [c.id, c]))
-
-export function categoriesFor(kind: 'in' | 'out'): Category[] {
-  return CATEGORIES.filter((c) => c.appliesTo === kind)
+/** What a child may pick from now: the right direction, and not archived. */
+export function categoriesFor(all: Category[], kind: TransactionKind): Category[] {
+  return all.filter((c) => c.appliesTo === kind && !c.archivedAt)
 }
 
-/** Never throws — an unknown id from old data still renders something sane. */
-export function categoryById(id: string): Category {
-  return BY_ID.get(id) ?? { id, label: 'Other', emoji: '❓', appliesTo: 'out' }
+/**
+ * Never throws. An archived category still resolves, so old entries keep their
+ * label; an id that has vanished entirely renders as a visible unknown rather
+ * than blank.
+ */
+export function categoryById(all: Category[], id: Id): Category {
+  return (
+    all.find((c) => c.id === id) ?? { id, label: 'Other', emoji: '❓', appliesTo: 'out' }
+  )
+}
+
+/** Slug from a label, kept unique against ids already in use. */
+export function categoryIdFor(label: string, taken: Id[]): Id {
+  const base =
+    label
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'category'
+  if (!taken.includes(base)) return base
+  let n = 2
+  while (taken.includes(`${base}-${n}`)) n += 1
+  return `${base}-${n}`
 }

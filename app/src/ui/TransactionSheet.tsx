@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { categoriesFor } from '../domain/categories.ts'
+import { checkSpend, type LimitBreach } from '../domain/limits.ts'
 import { formatCents, isValidAmountCents, parseAmountToCents } from '../domain/money.ts'
-import type { Child, Settings, Transaction, TransactionKind } from '../domain/types.ts'
+import type {
+  Category,
+  Child,
+  Settings,
+  Transaction,
+  TransactionKind,
+} from '../domain/types.ts'
 import { Button, Field, Notice, Sheet } from './components.tsx'
 import { todayIso } from './dates.ts'
 
@@ -22,6 +29,8 @@ export function TransactionSheet({
   kind,
   existing,
   settings,
+  allCategories,
+  transactions,
   onSave,
   onDelete,
   onClose,
@@ -30,18 +39,23 @@ export function TransactionSheet({
   kind: TransactionKind
   existing?: Transaction
   settings: Settings
+  allCategories: Category[]
+  transactions: Transaction[]
   onSave: (draft: TransactionDraft) => Promise<void>
   onDelete?: () => Promise<void>
   onClose: () => void
 }) {
-  const categories = categoriesFor(kind)
+  const categories = categoriesFor(allCategories, kind)
   const [amount, setAmount] = useState(
     existing ? (existing.amountCents / 100).toFixed(2) : '',
   )
-  const [categoryId, setCategoryId] = useState(existing?.categoryId ?? categories[0].id)
+  const [categoryId, setCategoryId] = useState(
+    existing?.categoryId ?? categories[0]?.id ?? 'other-in',
+  )
   const [note, setNote] = useState(existing?.note ?? '')
   const [occurredOn, setOccurredOn] = useState(existing?.occurredOn ?? todayIso())
   const [problem, setProblem] = useState<string | null>(null)
+  const [breach, setBreach] = useState<LimitBreach | null>(null)
   const [saving, setSaving] = useState(false)
 
   const cents = parseAmountToCents(amount)
@@ -59,6 +73,25 @@ export function TransactionSheet({
       setProblem('That day has not happened yet. Pick today or a day already past.')
       return
     }
+
+    // Limits are a rule about recording, so they are checked here rather than
+    // in the repo — the child gets told which one they hit and by how much.
+    if (kind === 'out') {
+      const hit = checkSpend({
+        child,
+        transactions,
+        amountCents: cents,
+        occurredOn,
+        excludeTransactionId: existing?.id,
+      })
+      if (hit) {
+        setBreach(hit)
+        setProblem(null)
+        return
+      }
+    }
+
+    setBreach(null)
     setProblem(null)
     setSaving(true)
     try {
@@ -136,6 +169,23 @@ export function TransactionSheet({
         </Field>
 
         {problem ? <Notice>{problem}</Notice> : null}
+        {breach ? (
+          <Notice>
+            {breach.kind === 'per-purchase'
+              ? `That is more than one purchase is allowed to be. The limit is ${formatCents(
+                  breach.limitCents,
+                  settings,
+                )}, so this is ${formatCents(breach.overByCents, settings)} too much.`
+              : `That would make ${formatCents(
+                  breach.wouldBeCents,
+                  settings,
+                )} spent this week, and the limit is ${formatCents(
+                  breach.limitCents,
+                  settings,
+                )}. It is ${formatCents(breach.overByCents, settings)} too much.`}{' '}
+            Ask a parent, or record a smaller amount.
+          </Notice>
+        ) : null}
 
         <div className="txform__actions">
           <Button type="submit" tone={kind} wide disabled={saving}>

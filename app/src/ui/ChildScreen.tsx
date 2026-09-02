@@ -1,23 +1,29 @@
 import { groupByDay, totalsFor } from '../domain/balance.ts'
 import { categoryById } from '../domain/categories.ts'
 import { formatCents, formatSignedCents } from '../domain/money.ts'
-import type { Child, Settings, Transaction } from '../domain/types.ts'
+import type { Category, Child, Chore, Settings, Transaction } from '../domain/types.ts'
 import { describeDay } from './dates.ts'
 
 export function ChildScreen({
   child,
   transactions,
+  categories,
+  chores,
   settings,
   onGotMoney,
   onSpentMoney,
+  onClaimChore,
   onEditTransaction,
   onEditChild,
 }: {
   child: Child
   transactions: Transaction[]
+  categories: Category[]
+  chores: Chore[]
   settings: Settings
   onGotMoney: () => void
   onSpentMoney: () => void
+  onClaimChore: (chore: Chore) => void
   onEditTransaction: (tx: Transaction) => void
   onEditChild: () => void
 }) {
@@ -55,6 +61,27 @@ export function ChildScreen({
         </button>
       </div>
 
+      {chores.length > 0 ? (
+        <section className="jobs">
+          <h2 className="jobs__title">Jobs {child.name} can do</h2>
+          <ul className="jobs__list">
+            {chores.map((chore) => (
+              <li key={chore.id}>
+                <button className="job" onClick={() => onClaimChore(chore)}>
+                  <span className="job__emoji" aria-hidden="true">
+                    {chore.emoji}
+                  </span>
+                  <span className="job__label">{chore.label}</span>
+                  <span className="job__pay figure">
+                    {formatCents(chore.payoutCents, settings)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {days.length === 0 ? (
         <div className="empty empty--inline">
           <h2>Nothing recorded yet</h2>
@@ -69,7 +96,7 @@ export function ChildScreen({
               <h3 className="history__date">{describeDay(day, settings.locale)}</h3>
               <ul className="slips">
                 {items.map((tx) => {
-                  const category = categoryById(tx.categoryId)
+                  const category = categoryById(categories, tx.categoryId)
                   return (
                     <li key={tx.id}>
                       <button className="slip" onClick={() => onEditTransaction(tx)}>

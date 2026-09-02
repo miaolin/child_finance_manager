@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { balanceCents } from '../domain/balance.ts'
+import { categoriesFor, categoryById } from '../domain/categories.ts'
 import { LocalRepo, MemoryStore, normalizeSnapshot } from './localRepo.ts'
 
 let repo: LocalRepo
@@ -158,5 +159,124 @@ describe('export and import', () => {
   it('falls back to defaults for an unusable file', () => {
     expect(normalizeSnapshot(null).children).toEqual([])
     expect(normalizeSnapshot('nonsense').settings.currency).toBe('SGD')
+  })
+})
+
+describe('categories', () => {
+  it('seeds the defaults on a fresh store', async () => {
+    const all = await repo.listCategories()
+    expect(all.length).toBeGreaterThan(0)
+    expect(all.some((c) => c.appliesTo === 'in')).toBe(true)
+    expect(all.some((c) => c.appliesTo === 'out')).toBe(true)
+  })
+
+  it('adds one with an id derived from its name', async () => {
+    const created = await repo.addCategory({
+      label: 'Birthday money', emoji: '🎂', appliesTo: 'in',
+    })
+    expect(created.id).toBe('birthday-money')
+    expect((await repo.listCategories()).some((c) => c.id === created.id)).toBe(true)
+  })
+
+  it('does not reuse an id that is taken', async () => {
+    const first = await repo.addCategory({ label: 'Books', emoji: '📗', appliesTo: 'in' })
+    expect(first.id).not.toBe('books')
+  })
+
+  it('renames one', async () => {
+    await repo.updateCategory('snacks', { label: 'Treats' })
+    const snacks = (await repo.listCategories()).find((c) => c.id === 'snacks')
+    expect(snacks?.label).toBe('Treats')
+  })
+
+  it('archives rather than deletes, so old entries keep their label', async () => {
+    const child = await withChild()
+    await repo.addTransaction({
+      childId: child.id, amountCents: 350, kind: 'out',
+      categoryId: 'snacks', note: '', occurredOn: '2026-09-01',
+    })
+
+    await repo.archiveCategory('snacks')
+
+    const all = await repo.listCategories()
+    const snacks = all.find((c) => c.id === 'snacks')
+    expect(snacks?.archivedAt).toBeTruthy()
+    expect(snacks?.label).toBe('Snacks')
+    expect(categoriesFor(all, 'out').some((c) => c.id === 'snacks')).toBe(false)
+    expect(categoryById(all, 'snacks').label).toBe('Snacks')
+  })
+
+  it('rejects a category with no name', async () => {
+    await expect(
+      repo.addCategory({ label: '   ', emoji: '⭐', appliesTo: 'in' }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('chores', () => {
+  it('starts with none', async () => {
+    expect(await repo.listChores()).toEqual([])
+  })
+
+  it('adds one with a payout', async () => {
+    const chore = await repo.addChore({ label: 'Tidy the shed', emoji: '🧹', payoutCents: 500 })
+    expect(chore.payoutCents).toBe(500)
+    expect(await repo.listChores()).toHaveLength(1)
+  })
+
+  it('refuses a payout that is zero, negative or fractional', async () => {
+    const base = { label: 'Job', emoji: '🧹' }
+    await expect(repo.addChore({ ...base, payoutCents: 0 })).rejects.toThrow()
+    await expect(repo.addChore({ ...base, payoutCents: -100 })).rejects.toThrow()
+    await expect(repo.addChore({ ...base, payoutCents: 10.5 })).rejects.toThrow()
+  })
+
+  it('archives one out of the list', async () => {
+    const chore = await repo.addChore({ label: 'Tidy', emoji: '🧹', payoutCents: 500 })
+    await repo.archiveChore(chore.id)
+    expect(await repo.listChores()).toEqual([])
+  })
+})
+
+describe('per-child rules', () => {
+  it('stores an allowance and limits on the child', async () => {
+    const child = await withChild()
+    await repo.updateChild(child.id, {
+      allowance: { amountCents: 500, cadence: 'weekly', anchor: 1, lastPaidOn: '2026-09-01' },
+      limits: { perPurchaseCents: 1000, perWeekCents: 2000 },
+    })
+    const saved = (await repo.listChildren())[0]
+    expect(saved.allowance).toEqual({
+      amountCents: 500, cadence: 'weekly', anchor: 1, lastPaidOn: '2026-09-01',
+    })
+    expect(saved.limits).toEqual({ perPurchaseCents: 1000, perWeekCents: 2000 })
+  })
+})
+
+describe('migrating a file written before the parent view', () => {
+  it('seeds categories a v1 export does not have', () => {
+    const migrated = normalizeSnapshot({
+      version: 1,
+      children: [{ id: 'c1', name: 'Mia', emoji: '🦊', color: '#000', createdAt: 'x' }],
+      transactions: [
+        { id: 't1', childId: 'c1', amountCents: 350, kind: 'out', categoryId: 'snacks' },
+      ],
+      settings: { currency: 'SGD', locale: 'en-SG', parentName: 'Parent' },
+    })
+    expect(migrated.categories.length).toBeGreaterThan(0)
+    expect(categoryById(migrated.categories, 'snacks').label).toBe('Snacks')
+    expect(migrated.chores).toEqual([])
+    expect(migrated.transactions).toHaveLength(1)
+  })
+
+  it('keeps categories a newer file does carry', () => {
+    const migrated = normalizeSnapshot({
+      version: 1,
+      children: [],
+      transactions: [],
+      categories: [{ id: 'x', label: 'Only one', emoji: '⭐', appliesTo: 'in' }],
+      chores: [],
+    })
+    expect(migrated.categories).toHaveLength(1)
   })
 })
