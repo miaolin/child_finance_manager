@@ -157,6 +157,6 @@ describe('export and import', () => {
 
   it('falls back to defaults for an unusable file', () => {
     expect(normalizeSnapshot(null).children).toEqual([])
-    expect(normalizeSnapshot('nonsense').settings.currency).toBe('USD')
+    expect(normalizeSnapshot('nonsense').settings.currency).toBe('SGD')
   })
 })

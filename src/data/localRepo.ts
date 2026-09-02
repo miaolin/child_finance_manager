@@ -21,8 +21,10 @@ import type {
 const STORAGE_KEY = 'child-finance-manager/v1'
 
 export const DEFAULT_SETTINGS: Settings = {
-  currency: 'USD',
-  locale: 'en-US',
+  currency: 'SGD',
+  // Paired with the currency: under en-US, SGD formats as "SGD 12.50", while
+  // en-SG gives the "$12.50" a price is actually written as in Singapore.
+  locale: 'en-SG',
   parentName: 'Parent',
 }
 
