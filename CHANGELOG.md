@@ -6,6 +6,39 @@ Versions follow [semantic versioning](https://semver.org): the first number
 changes when the way the app is used changes, the second when something is
 added, the third for fixes.
 
+## 3.0.0 — 2026-09-02
+
+The same records on every device, and an app that still works without a signal.
+
+Cloud sync is **off until you set it up** — see
+[docs/cloud-setup.md](docs/cloud-setup.md). With no keys configured the app
+behaves exactly as it did before, storing everything in one browser. That is a
+supported way to use it, not a broken state.
+
+### Added
+
+- **Sync across devices.** Sign in with an email link on each device and they
+  all show the same children, entries and rules.
+- **Works offline.** Balances and history stay readable with no connection, and
+  new entries queue. Settings says how many changes are waiting to upload.
+- **Sign-in by link**, so there is no password to store or type on a child's
+  device. Signing out leaves the records on the device; it deletes nothing.
+
+### Changed
+
+- Every record now carries when it last changed, and deleting one leaves a
+  tombstone instead of dropping it. Without that, a delete on one device would
+  be undone by the next sync from another that had not heard about it.
+
+### Notes
+
+- When the same entry is changed on two devices, the more recent change wins.
+  There is no merge dialog, and no record of what the other device had.
+- Anyone who can read the family email inbox can sign in. The inbox is the
+  account.
+- The cloud round trip has not been verified against a live project yet — that
+  needs a Supabase project, which only the account holder can create.
+
 ## 2.0.0 — 2026-09-02
 
 The parent sets the rules; the child records what happened within them. There

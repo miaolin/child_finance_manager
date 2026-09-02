@@ -3,7 +3,10 @@ import { allowanceDatesOwed } from './allowance.ts'
 import type { Child } from './types.ts'
 
 function child(allowance?: Child['allowance'], createdAt = '2026-01-01T00:00:00.000Z'): Child {
-  return { id: 'c1', name: 'Mia', emoji: '🦊', color: '#000', createdAt, allowance }
+  return {
+    id: 'c1', name: 'Mia', emoji: '🦊', color: '#000',
+    createdAt, updatedAt: createdAt, allowance,
+  }
 }
 
 describe('allowanceDatesOwed', () => {

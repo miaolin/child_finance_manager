@@ -5,7 +5,7 @@ import type { Category, Id, TransactionKind } from './types.ts'
  * not a fixed list. Emoji carry the meaning so a child who cannot read
  * fluently can still pick the right one.
  */
-export const DEFAULT_CATEGORIES: Category[] = [
+export const DEFAULT_CATEGORIES: Omit<Category, 'updatedAt' | 'deletedAt'>[] = [
   { id: 'allowance', label: 'Allowance', emoji: '🗓️', appliesTo: 'in' },
   { id: 'chores', label: 'Chores', emoji: '🧹', appliesTo: 'in' },
   { id: 'gift', label: 'Gift', emoji: '🎁', appliesTo: 'in' },
@@ -36,7 +36,13 @@ export function categoriesFor(all: Category[], kind: TransactionKind): Category[
  */
 export function categoryById(all: Category[], id: Id): Category {
   return (
-    all.find((c) => c.id === id) ?? { id, label: 'Other', emoji: '❓', appliesTo: 'out' }
+    all.find((c) => c.id === id) ?? {
+      id,
+      label: 'Other',
+      emoji: '❓',
+      appliesTo: 'out',
+      updatedAt: '1970-01-01T00:00:00.000Z',
+    }
   )
 }
 

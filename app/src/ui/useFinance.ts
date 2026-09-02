@@ -33,6 +33,8 @@ import { todayIso } from './dates.ts'
 
 export interface FinanceState {
   ready: boolean
+  /** Re-read everything from the repo — used after a sync changes it underneath. */
+  reload(): Promise<void>
   children: Child[]
   transactions: Transaction[]
   categories: Category[]
@@ -135,6 +137,7 @@ export function useFinance(repo: FinanceRepo): FinanceState {
 
   return {
     ready,
+    reload: refresh,
     children,
     transactions,
     categories,

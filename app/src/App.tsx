@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createLocalRepo } from './data/localRepo.ts'
+import { supabase } from './data/supabase.ts'
 import { categoriesFor } from './domain/categories.ts'
 import type { Chore, Transaction, TransactionKind } from './domain/types.ts'
 import { ChildScreen } from './ui/ChildScreen.tsx'
@@ -11,6 +12,8 @@ import { SettingsSheet } from './ui/SettingsSheet.tsx'
 import { TransactionSheet } from './ui/TransactionSheet.tsx'
 import { todayIso } from './ui/dates.ts'
 import { useFinance } from './ui/useFinance.ts'
+import { useSession } from './ui/useSession.ts'
+import { SyncingRepo, type SyncStatus } from './sync/SyncingRepo.ts'
 import './app.css'
 
 type Sheet =
@@ -22,10 +25,48 @@ type Sheet =
   | { kind: 'settings' }
 
 export default function App() {
-  // One repo for the life of the app. Swapping this line for a cloud-backed
-  // implementation is the whole migration.
-  const repo = useMemo(() => createLocalRepo(), [])
+  const local = useMemo(() => createLocalRepo(), [])
+  const { session, configured } = useSession()
+
+  /**
+   * Signed in, the local store gains a cloud counterpart; signed out it is the
+   * whole app, exactly as before. Nothing else in the app knows the difference
+   * — every screen still talks to a FinanceRepo.
+   */
+  const repo = useMemo(() => {
+    if (!supabase || !session) return local
+    return new SyncingRepo(local, supabase, session.user.id)
+  }, [local, session])
+
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
   const finance = useFinance(repo)
+
+  useEffect(() => {
+    if (!(repo instanceof SyncingRepo)) {
+      setSyncStatus(null)
+      return
+    }
+    const stop = repo.onStatus(setSyncStatus)
+    void repo.sync().then(() => finance.reload())
+
+    // Sync again when the device wakes up, comes back online, or the page is
+    // looked at again — the moments when another device may have changed
+    // something.
+    const again = () => void repo.sync().then(() => finance.reload())
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') again()
+    }
+    window.addEventListener('online', again)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      stop()
+      window.removeEventListener('online', again)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+    // finance.reload is stable enough for this; re-running on every render
+    // would restart the sync loop continuously.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repo])
 
   const [openChildId, setOpenChildId] = useState<string | null>(null)
   const [inParentView, setInParentView] = useState(false)
@@ -209,6 +250,12 @@ export default function App() {
           onExport={finance.exportSnapshot}
           onImport={finance.importSnapshot}
           onClose={closeSheet}
+          cloudConfigured={configured}
+          session={session}
+          syncStatus={syncStatus}
+          onSyncNow={() => {
+            if (repo instanceof SyncingRepo) void repo.sync().then(() => finance.reload())
+          }}
         />
       ) : null}
     </div>

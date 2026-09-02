@@ -10,7 +10,17 @@ export type TransactionKind = 'in' | 'out'
 
 export type AllowanceCadence = 'none' | 'weekly' | 'monthly'
 
-export interface Child {
+/**
+ * Every synced entity carries when it last changed and whether it is deleted.
+ * Sync needs both: a timestamp to settle which of two versions wins, and a
+ * tombstone so a delete on one device is not undone by a pull from another.
+ */
+export interface Synced {
+  updatedAt: string
+  deletedAt?: string
+}
+
+export interface Child extends Synced {
   id: Id
   name: string
   emoji: string
@@ -33,7 +43,7 @@ export interface Child {
   }
 }
 
-export interface Transaction {
+export interface Transaction extends Synced {
   id: Id
   childId: Id
   /** Always positive. Direction lives in `kind`, not in the sign. */
@@ -44,10 +54,9 @@ export interface Transaction {
   /** Calendar day the money moved, as YYYY-MM-DD. */
   occurredOn: string
   createdAt: string
-  updatedAt: string
 }
 
-export interface Category {
+export interface Category extends Synced {
   id: Id
   label: string
   emoji: string
@@ -60,7 +69,7 @@ export interface Category {
 }
 
 /** A job with a fixed price, so claiming it is one tap and never mistyped. */
-export interface Chore {
+export interface Chore extends Synced {
   id: Id
   label: string
   emoji: string
@@ -79,6 +88,8 @@ export interface Settings {
   locale: string
   parentName: string
   parent?: ParentGate
+  /** Settings sync as one row, so they need a timestamp of their own. */
+  updatedAt?: string
 }
 
 /** Everything the app owns, in one shape — what export/import moves around. */

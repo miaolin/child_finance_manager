@@ -49,6 +49,16 @@ Two rules hold throughout:
   recomputed on every read, so editing or deleting history cannot leave a stale
   number behind.
 
+## Cloud sync
+
+Off until you set it up: see [docs/cloud-setup.md](docs/cloud-setup.md). With no
+keys configured the app stores everything in one browser, which is a supported
+way to use it.
+
+Once it is on, every device signed into the same email shows the same records,
+and the app keeps working offline — reads come from the local copy and changes
+queue until there is a connection.
+
 ## Where the data lives
 
 In this browser, on this device, under one key in `localStorage`. Nothing is
