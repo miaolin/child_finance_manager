@@ -8,7 +8,8 @@ export const CATEGORIES: Category[] = [
   { id: 'allowance', label: 'Allowance', emoji: '🗓️', appliesTo: 'in' },
   { id: 'chores', label: 'Chores', emoji: '🧹', appliesTo: 'in' },
   { id: 'gift', label: 'Gift', emoji: '🎁', appliesTo: 'in' },
-  { id: 'found', label: 'Found it', emoji: '🍀', appliesTo: 'in' },
+  // 压岁钱: the money children are given in a red envelope at Lunar New Year.
+  { id: 'new-year', label: 'New Year money', emoji: '🧧', appliesTo: 'in' },
   { id: 'tennis', label: 'Tennis tournament', emoji: '🎾', appliesTo: 'in' },
   { id: 'other-in', label: 'Something else', emoji: '💰', appliesTo: 'in' },
 
