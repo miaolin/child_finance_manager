@@ -73,3 +73,61 @@ Captured from driving the running app at http://localhost:5173 on 2026-09-02.
 
 ---
 *Update this file after every 2 view/browser/search operations*
+
+---
+
+# Sync redo —研究 Olivia_study_plan (2026-09-02)
+
+## Why we are here
+Cloud sync in this app is built and correct, but has never once carried data
+between two real devices. Four attempts failed at the same step: signing in on
+the computer. Verified from the computer's own browser storage: no session,
+never synced, records still local-only. The iPad signed in fine and has been
+faithfully syncing an empty account.
+
+The failure is not in the sync engine. It is in **how a device gets signed in**.
+
+## What the other repo does (github.com/miaolin/Olivia_study_plan, private)
+Studied `vercel-deploy/cloud.js` (383 lines), `firebase-config.js`,
+`auth-ui.js`, and `SETUP.md`.
+
+| Decision | Olivia_study_plan | This app today |
+|----------|-------------------|----------------|
+| Backend | Firebase Firestore | Supabase Postgres |
+| **Auth** | **Email + password** | **Magic link** ← the thing that keeps failing |
+| Shape | One document per user holding the whole state JSON | Five tables, row per record |
+| Updates | `onSnapshot` — live, no button | Pull on load/focus/online, plus "Sync now" |
+| Conflicts | Whole-document last-write-wins, plus hand-written reconciliation for fields a blind overwrite would damage | Last-write-wins per row |
+| Config | `firebase-config.js` committed to the repo | `VITE_*` env vars |
+
+## The decisive difference
+**Email and password works in whatever browser you type it into.** A magic link
+has to be *opened in the same browser that asked for it*, and on a computer
+that fails whenever the mail client hands the link to the default browser
+instead. That is precisely, repeatedly, what happened here.
+
+Firebase's own docs push passwordless; that repo deliberately chose
+email/password ("leave passwordless off" in SETUP.md step 2) and it has worked
+across devices ever since.
+
+## Other things worth stealing
+- **Live updates.** `onSnapshot` means no "Sync now" button and no wondering
+  whether a device is current. Supabase Realtime gives the same thing.
+- **Seed rule stated plainly.** "Existing data is pushed the first time a device
+  signs in, if the cloud document does not exist yet. If both have data, the
+  cloud wins — export a backup first." Ours merges instead, which is kinder,
+  but theirs is *documented*, which is why nobody is surprised.
+- **Self-echo suppression.** They compare canonical JSON so a device does not
+  re-render from its own write echoed back. Our per-row `updatedAt` comparison
+  already covers this.
+- **Debounced push** (600ms). We do the same at 1200ms.
+
+## What is NOT worth copying
+Whole-document sync. It made them hand-write reconciliation for `dailyPlan` and
+for study notes, because one device saving a stale snapshot silently wiped a
+field the other had written. Per-row sync — what we already have — does not
+have that failure at all. Their comments describe fixing it twice.
+
+## Conclusion
+The Supabase work is sound and should stay. The failing part is auth, and the
+fix is to stop depending on a link arriving in the right browser.

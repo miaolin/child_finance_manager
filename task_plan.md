@@ -159,6 +159,41 @@ most recent change wins" is explainable in one sentence. A proper CRDT would
 avoid losing the older edit, at a cost in complexity far past what a family
 ledger justifies.
 
+## v3.1: Sync redo — sign-in that actually works (2026-09-02)
+
+### Why
+Sync has never carried data between two devices, across four attempts. Verified
+from the computer's own storage: no session, never synced. The engine is fine;
+the **magic link** is the fault. A link must be opened in the browser that asked
+for it, and the mail client keeps handing it to the default browser instead.
+
+Studied github.com/miaolin/Olivia_study_plan, which syncs reliably across the
+same user's devices. Its SETUP.md says, of Firebase auth: "leave passwordless
+off". Email and password works in whatever browser you type it into.
+
+### Decided with the user
+Keep Supabase and everything already verified. Replace magic link with email +
+password, and add Supabase Realtime so a change on one device appears on the
+other without pressing anything.
+
+### Phases
+- [x] v3.1.1 Auth: email + password, sign in and create account, real errors
+- [x] v3.1.2 Realtime: subscribe per table, pull on remote change
+- [x] v3.1.3 Schema: add the tables to the realtime publication
+- [x] v3.1.4 Docs: revised setup, including turning off email confirmation
+- [ ] v3.1.5 Verify on two real devices — the thing never yet achieved
+- **Status:** in_progress
+
+### Migration note
+The existing account was created by magic link and has no password. The cloud
+holds nothing worth keeping (verified empty), so the clean path is to delete
+that user in the Supabase dashboard and create a fresh one with a password.
+
+### Kept from the old approach
+Per-record sync with `updatedAt` and tombstones. The reference app syncs a whole
+document and had to hand-write reconciliation twice to stop one device wiping
+another's field. Per-record does not have that failure.
+
 ## Deferred (explicitly out of v1)
 - `AuthProvider` seam and parent login. Over local storage a login is not a
   security boundary, so it was left out rather than faked. It belongs with the

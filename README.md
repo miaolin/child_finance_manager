@@ -77,19 +77,21 @@ safe.
 That file also switches on row-level security, which is the entire security
 model: it is what stops one signed-in account reading another family's records.
 
-**3. Turn on email sign-in.** **Authentication → Providers → Email**, enabled,
-with *Confirm email* on. Then under **Authentication → URL Configuration →
-Redirect URLs**, add both — a sign-in link returning to an address not on the
-list is rejected:
+**3. Turn on email sign-in.** **Authentication → Providers → Email**, enabled.
+Turn **Confirm email off**.
 
-```
-http://localhost:5173
-https://child-finance-manager-lvca.vercel.app
-```
+Sign-in is an email address and a password, not a link. That is deliberate: a
+sign-in link has to be opened in the browser that asked for it, and a mail app
+will hand it to whichever browser is the default — which signs in the wrong
+browser and leaves the records stranded on the right one. A password works
+wherever it is typed. Leaving confirmation on would put a link back in the way
+of creating the account.
 
-Supabase's built-in mail is rate-limited and lands in spam more often than not.
-Fine for trying this out; connect your own SMTP under **Authentication →
-Emails** if sign-in becomes a daily thing.
+The trade is that anyone who finds the project could create an account on it.
+They would get their own empty account and could not read yours — that is what
+row-level security is for — but once every device is signed in you can close
+the door: **Authentication → Sign In / Providers → Allow new users to sign up**,
+off.
 
 **4. Copy the two keys.** **Project Settings → API** gives you the **Project
 URL** and the **anon public** key. Put them in `app/.env.local`, which is
@@ -110,14 +112,18 @@ Add the same two to **Vercel → Settings → Environment Variables**.
 **5. Deploy.** Vercel needs a build that has both the sync code and the
 variables, so redeploy after adding them.
 
-**6. Sign in — on the right device first.** The order matters. On first
-sign-in the app merges that device's records into the cloud, so start on the
-browser holding the records you want to keep, let it finish, and only then sign
-in elsewhere.
+**6. Create the account, then sign in everywhere.** Start on the device
+holding the records you want to keep: Settings → email and password → **Create
+the account**. Its records upload. On every other device, the same email and
+password → **Sign in**, and they arrive.
+
+The order matters because the first device to sign in seeds the cloud.
 
 ### What sync does and does not do
 
-- Every device on the account agrees, within a few seconds of a change.
+- A change on one device appears on the others by itself, usually within a
+  second or two — nothing to press. Settings has a **Check now** button for
+  when you want to force it.
 - Offline, balances and history stay readable and new entries queue. Settings
   says how many changes are waiting.
 - If the same entry is changed on two devices, the more recent change wins.

@@ -49,6 +49,7 @@ export class SyncingRepo implements FinanceRepo {
   private listeners = new Set<(status: SyncStatus) => void>()
   private inFlight: Promise<void> | null = null
   private pushTimer: ReturnType<typeof setTimeout> | null = null
+  private remoteTimer: ReturnType<typeof setTimeout> | null = null
 
   constructor(local: LocalRepo, client: SupabaseClient, ownerId: string) {
     this.local = local
@@ -102,6 +103,44 @@ export class SyncingRepo implements FinanceRepo {
       ...snapshot.chores,
     ].filter((row) => row.updatedAt > since).length
     this.setStatus({ pending })
+  }
+
+  /* Live updates ----------------------------------------------------------- */
+
+  /**
+   * Listen for changes another device makes, so they arrive without anyone
+   * pressing anything.
+   *
+   * Our own writes come back through here too. Rather than trying to tell them
+   * apart, a pull is scheduled with a short delay and skipped while a sync is
+   * already running — the merge is idempotent, so a redundant pull costs a
+   * round trip and changes nothing.
+   */
+  watch(onChanged: () => void): () => void {
+    const tables = ['children', 'transactions', 'categories', 'chores', 'settings']
+    const channel = this.client.channel(`pocket-money:${this.ownerId}`)
+
+    for (const table of tables) {
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table, filter: `owner_id=eq.${this.ownerId}` },
+        () => {
+          if (this.remoteTimer) clearTimeout(this.remoteTimer)
+          this.remoteTimer = setTimeout(() => {
+            this.remoteTimer = null
+            if (this.inFlight) return
+            void this.sync().then(onChanged)
+          }, 400)
+        },
+      )
+    }
+
+    channel.subscribe()
+
+    return () => {
+      if (this.remoteTimer) clearTimeout(this.remoteTimer)
+      void this.client.removeChannel(channel)
+    }
   }
 
   /* Writes ---------------------------------------------------------------- */

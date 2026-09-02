@@ -148,3 +148,23 @@ begin
     );
   end loop;
 end $$;
+
+-- Live updates --------------------------------------------------------------
+-- Without this the tables emit no change events, and a device only finds out
+-- about another's edits when it next pulls. Adding them to the publication is
+-- what lets a change appear on the other device by itself.
+
+do $$
+declare t text;
+begin
+  foreach t in array array['children', 'transactions', 'categories', 'chores', 'settings']
+  loop
+    -- Re-running the file must not fail, and a table cannot be added twice.
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;

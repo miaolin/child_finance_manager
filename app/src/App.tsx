@@ -47,6 +47,7 @@ export default function App() {
       return
     }
     const stop = repo.onStatus(setSyncStatus)
+    const stopWatching = repo.watch(() => finance.reload())
     void repo.sync().then(() => finance.reload())
 
     // Sync again when the device wakes up, comes back online, or the page is
@@ -60,6 +61,7 @@ export default function App() {
     document.addEventListener('visibilitychange', onVisible)
     return () => {
       stop()
+      stopWatching()
       window.removeEventListener('online', again)
       document.removeEventListener('visibilitychange', onVisible)
     }
