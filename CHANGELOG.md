@@ -11,7 +11,7 @@ added, the third for fixes.
 The same records on every device, and an app that still works without a signal.
 
 Cloud sync is **off until you set it up** — see
-[docs/cloud-setup.md](docs/cloud-setup.md). With no keys configured the app
+the setup steps in [README.md](README.md#cloud-sync). With no keys the app
 behaves exactly as it did before, storing everything in one browser. That is a
 supported way to use it, not a broken state.
 
