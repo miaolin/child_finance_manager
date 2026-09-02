@@ -117,4 +117,5 @@ password** — its setup explicitly says "leave passwordless off". See findings.
 | Unit suite | green | 81 passed | pass |
 | Typecheck + build | clean | clean | pass |
 | Sign-in UI renders | email + password + two buttons | as expected | pass |
-| Two real devices sharing records | records appear on both | **not yet — needs the user** | pending |
+| Two real devices sharing records | records appear on both | computer and iPad both signed in, same records | **pass** |
+| Cloud actually holds the data | Ian + 2 entries | 1 child, 2 transactions (+$100.00, +$40.00), 14 categories | **pass** |
