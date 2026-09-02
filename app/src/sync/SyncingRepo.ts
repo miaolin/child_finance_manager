@@ -138,7 +138,17 @@ export class SyncingRepo implements FinanceRepo {
     return this.inFlight
   }
 
-  private async runSync(): Promise<void> {
+  /**
+   * A token can be refused as "issued at future" when the device clock runs
+   * ahead of the server's. The session is not broken — a freshly minted token
+   * fixes it — so this asks for one and tries again rather than stranding the
+   * device until someone notices and signs out.
+   */
+  private looksLikeClockSkew(message: string): boolean {
+    return /issued at future|jwt|token is expired|invalid claim/i.test(message)
+  }
+
+  private async runSync(retriedAfterRefresh = false): Promise<void> {
     this.setStatus({ state: 'syncing', message: undefined })
     try {
       const remote = await pullAll(this.client, this.ownerId)
@@ -176,10 +186,19 @@ export class SyncingRepo implements FinanceRepo {
       this.writeSyncedAt(syncedAt)
       this.setStatus({ state: 'idle', lastSyncedAt: syncedAt, pending: 0 })
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Sync failed'
       const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+
+      if (!offline && !retriedAfterRefresh && this.looksLikeClockSkew(message)) {
+        const { error: refreshError } = await this.client.auth.refreshSession()
+        if (!refreshError) return this.runSync(true)
+      }
+
       this.setStatus({
         state: offline ? 'offline' : 'error',
-        message: error instanceof Error ? error.message : 'Sync failed',
+        message: this.looksLikeClockSkew(message)
+          ? `${message}. This device's clock may be out of step with the server — check its date and time are set automatically.`
+          : `${message}.`,
       })
       await this.recount()
     }

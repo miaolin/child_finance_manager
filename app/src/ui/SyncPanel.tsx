@@ -116,7 +116,7 @@ function describe(status: SyncStatus | null): string {
         ? `Offline. ${count(status.pending)} waiting to upload.`
         : 'Offline. Everything here is up to date; changes will upload when you reconnect.'
     case 'error':
-      return `Could not sync: ${status.message ?? 'unknown problem'}. It will try again.`
+      return `Could not sync: ${status.message ?? 'unknown problem'} It will try again.`
     case 'off':
       return 'Sync is not set up.'
     default:
