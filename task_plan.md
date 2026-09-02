@@ -64,6 +64,64 @@ Phase 6 — Testing & Delivery (in progress)
 - [ ] Write README.md run instructions
 - **Status:** pending
 
+## v2: Parent view (planned 2026-09-02)
+
+### Goal
+A parent decides the rules — what counts as earning, what counts as spending,
+what chores pay, what allowance arrives, what a child may spend. The child
+records what actually happened within those rules.
+
+Confirmed with the user:
+
+| Question | Answer |
+|----------|--------|
+| Parent edits categories | Yes — add, rename, re-emoji, remove, for both directions |
+| Chores and allowance | Yes — chores with fixed payouts, recurring allowance per child |
+| Spending limits | Yes — a cap the child cannot record past |
+| Approval queue | **No** — entries count immediately; the parent sets rules, not permissions |
+| Separation | A Parent tab behind a 4-digit PIN |
+
+### Phase v2.1: Data model
+- [ ] Categories move from a hardcoded constant into stored data, seeded with
+      today's defaults on first run
+- [ ] Category delete is a soft archive, so history keeps its real label
+- [ ] New `Chore` entity: label, emoji, payout
+- [ ] Per-child allowance: amount, cadence, anchor day, last paid
+- [ ] Per-child spending limits: per purchase and per week
+- [ ] Parent PIN in settings, stored as a salted hash
+- [ ] `normalizeSnapshot` migrates v1 files, which have none of these
+- **Status:** pending
+
+### Phase v2.2: Rules as pure functions
+- [ ] `allowance.ts`: which allowance dates are owed, given the last paid date
+- [ ] `limits.ts`: does this spend break a limit, and which one
+- [ ] Both fully unit-tested before any UI touches them
+- **Status:** pending
+
+### Phase v2.3: Parent view behind the PIN
+- [ ] PIN set on first use, entered thereafter; unlock lives in memory only,
+      so closing the app re-locks it
+- [ ] Manage ways to earn and ways to spend
+- [ ] Manage chores and their payouts
+- [ ] Set each child's allowance and limits
+- **Status:** pending
+
+### Phase v2.4: What the child sees
+- [ ] Chore buttons that claim a fixed payout in one tap
+- [ ] Allowance credited automatically for every date owed since last time
+- [ ] A blocked spend explains which limit it broke and by how much
+- **Status:** pending
+
+### Phase v2.5: Verify
+- [ ] Tests for migration, allowance dates, limit checks
+- [ ] Drive the real app: set a rule as parent, then hit it as a child
+- **Status:** pending
+
+### Honest note on the PIN
+Stored in the browser, a PIN stops a young child wandering into the parent tab.
+It is not security: anyone who can open devtools can read or clear it. Real
+separation still waits on the cloud swap and actual accounts.
+
 ## Deferred (explicitly out of v1)
 - `AuthProvider` seam and parent login. Over local storage a login is not a
   security boundary, so it was left out rather than faked. It belongs with the
