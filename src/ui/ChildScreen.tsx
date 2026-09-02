@@ -48,7 +48,7 @@ export function ChildScreen({
 
       <div className="child__actions">
         <button className="btn btn--in btn--wide" onClick={onGotMoney}>
-          Got money
+          Earn money
         </button>
         <button className="btn btn--out btn--wide" onClick={onSpentMoney}>
           Spent money
@@ -59,7 +59,7 @@ export function ChildScreen({
         <div className="empty empty--inline">
           <h2>Nothing recorded yet</h2>
           <p className="empty__text">
-            Start with the money {child.name} already has: tap Got money.
+            Start with the money {child.name} already has: tap Earn money.
           </p>
         </div>
       ) : (

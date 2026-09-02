@@ -47,7 +47,7 @@ export function TransactionSheet({
   const cents = parseAmountToCents(amount)
   const preview = cents !== null && isValidAmountCents(cents) ? formatCents(cents, settings) : null
 
-  const verb = kind === 'in' ? 'Got money' : 'Spent money'
+  const verb = kind === 'in' ? 'Earn money' : 'Spent money'
   const title = existing ? (kind === 'in' ? 'Edit money in' : 'Edit spending') : verb
 
   async function save() {
