@@ -187,6 +187,16 @@ export class SyncingRepo implements FinanceRepo {
     return /issued at future|jwt|token is expired|invalid claim/i.test(message)
   }
 
+  /**
+   * Every row is keyed to a user in `auth.users`. If that user is deleted, a
+   * token already issued for it keeps working — Supabase tokens are not checked
+   * against the database — so writes keep being attempted and every one is
+   * refused by the foreign key. The session has to be replaced, not retried.
+   */
+  private looksLikeDeletedAccount(message: string): boolean {
+    return /owner_id_fkey|violates foreign key constraint .*owner/i.test(message)
+  }
+
   private async runSync(retriedAfterRefresh = false): Promise<void> {
     this.setStatus({ state: 'syncing', message: undefined })
     try {
@@ -227,6 +237,23 @@ export class SyncingRepo implements FinanceRepo {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Sync failed'
       const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+
+      if (!offline && this.looksLikeDeletedAccount(message)) {
+        // A refresh either hands back a session for an account that still
+        // exists, or fails — in which case staying signed in only produces the
+        // same error every few seconds. Sign out so the app asks properly.
+        const { error: refreshError } = await this.client.auth.refreshSession()
+        if (refreshError) {
+          await this.client.auth.signOut()
+          this.setStatus({
+            state: 'error',
+            message:
+              'This device was signed in to an account that no longer exists. Sign in again to carry on.',
+          })
+          return
+        }
+        if (!retriedAfterRefresh) return this.runSync(true)
+      }
 
       if (!offline && !retriedAfterRefresh && this.looksLikeClockSkew(message)) {
         const { error: refreshError } = await this.client.auth.refreshSession()

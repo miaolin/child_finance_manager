@@ -181,8 +181,27 @@ other without pressing anything.
 - [x] v3.1.2 Realtime: subscribe per table, pull on remote change
 - [x] v3.1.3 Schema: add the tables to the realtime publication
 - [x] v3.1.4 Docs: revised setup, including turning off email confirmation
-- [ ] v3.1.5 Verify on two real devices — the thing never yet achieved
-- **Status:** in_progress
+- [x] v3.1.5 Verified on two real devices — 2026-09-02, after five attempts
+- **Status:** complete
+
+### Verified
+Queried the database from the signed-in browser: 1 child, 2 transactions
+(+$100.00 and +$40.00 = the $140 that had been stranded on the computer since
+this began), 14 categories. Both devices signed in as the same account and
+showing the same records.
+
+### What actually fixed it
+Two faults, stacked, each hiding the next:
+1. **Magic link.** Had to be opened in the browser that asked for it; the mail
+   app handed it to the default browser instead. Replaced with a password.
+2. **A token for a deleted user.** Supabase tokens are signed, not checked
+   against the database, so deleting the old account left a device writing rows
+   keyed to a user id that no longer existed. Now detected and signed out.
+
+Neither was in the sync engine, which was correct from the start. The lesson is
+that the sign-in path deserved the same scrutiny as the merge logic — it was
+the part a person actually had to get right, and it was the part with no
+diagnostics at all.
 
 ### Migration note
 The existing account was created by magic link and has no password. The cloud
