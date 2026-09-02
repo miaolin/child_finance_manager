@@ -280,3 +280,33 @@ describe('migrating a file written before the parent view', () => {
     expect(migrated.categories).toHaveLength(1)
   })
 })
+
+describe('the parent PIN', () => {
+  it('is absent until one is set', async () => {
+    expect((await repo.getSettings()).parent).toBeUndefined()
+  })
+
+  it('clears back to unset, leaving everything else alone', async () => {
+    const child = await withChild('Mia')
+    await repo.addTransaction({
+      childId: child.id, amountCents: 500, kind: 'in',
+      categoryId: 'allowance', note: '', occurredOn: '2026-09-01',
+    })
+    await repo.updateSettings({ parent: { salt: 'abc', pinHash: 'def' } })
+    expect((await repo.getSettings()).parent?.pinHash).toBe('def')
+
+    await repo.updateSettings({ parent: undefined })
+
+    expect((await repo.getSettings()).parent).toBeUndefined()
+    // The records the PIN was guarding are untouched.
+    expect(await repo.listChildren()).toHaveLength(1)
+    expect(balanceCents(await repo.listTransactions(), child.id)).toBe(500)
+    expect((await repo.getSettings()).currency).toBe('SGD')
+  })
+
+  it('stays cleared after reopening the store', async () => {
+    await repo.updateSettings({ parent: { salt: 'abc', pinHash: 'def' } })
+    await repo.updateSettings({ parent: undefined })
+    expect((await new LocalRepo(store).getSettings()).parent).toBeUndefined()
+  })
+})

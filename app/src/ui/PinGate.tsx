@@ -10,10 +10,12 @@ import { Button, Field, Notice } from './components.tsx'
 export function PinGate({
   settings,
   onSetGate,
+  onClearGate,
   onUnlock,
 }: {
   settings: Settings
   onSetGate: (gate: Settings['parent']) => Promise<void>
+  onClearGate: () => Promise<void>
   onUnlock: () => void
 }) {
   const alreadySet = isPinSet(settings.parent)
@@ -21,6 +23,7 @@ export function PinGate({
   const [confirmPin, setConfirmPin] = useState('')
   const [problem, setProblem] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   async function submit() {
     setProblem(null)
@@ -102,9 +105,45 @@ export function PinGate({
         </Button>
       </form>
 
+      {alreadySet ? (
+        <div className="gate__forgot">
+          {resetting ? (
+            <>
+              <p className="gate__forgot-text">
+                Clearing the PIN lets you choose a new one. It changes nothing else — every
+                child, every entry and every rule stays exactly as it is.
+              </p>
+              <div className="gate__forgot-actions">
+                <Button
+                  tone="panel"
+                  onClick={() => {
+                    void onClearGate().then(() => {
+                      setResetting(false)
+                      setPin('')
+                      setConfirmPin('')
+                      setProblem(null)
+                    })
+                  }}
+                >
+                  Clear it and choose a new one
+                </Button>
+                <Button tone="quiet" onClick={() => setResetting(false)}>
+                  Keep the PIN
+                </Button>
+              </div>
+            </>
+          ) : (
+            <button className="gate__forgot-link" onClick={() => setResetting(true)}>
+              Forgotten the PIN?
+            </button>
+          )}
+        </div>
+      ) : null}
+
       <p className="gate__caveat">
         A PIN keeps a child out of the rules. It is not a lock on the data —
-        anyone who knows their way around a browser can get past it.
+        anyone who knows their way around a browser can get past it. That is also
+        why forgetting it is a nuisance rather than a disaster.
       </p>
     </div>
   )

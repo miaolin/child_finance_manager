@@ -123,6 +123,7 @@ export default function App() {
             <PinGate
               settings={finance.settings}
               onSetGate={(parent) => finance.updateSettings({ parent })}
+              onClearGate={() => finance.updateSettings({ parent: undefined })}
               onUnlock={() => setParentUnlocked(true)}
             />
           )

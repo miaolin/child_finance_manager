@@ -118,6 +118,16 @@ Confirmed with the user:
       $3.50 chore in one tap, then had a $5.00 spend blocked with the reason
 - **Status:** complete
 
+### Phase v2.6: Forgotten PIN
+- [x] "Forgotten the PIN?" on the gate clears it and lets a new one be chosen
+- [x] Clearing touches nothing but the PIN — children, entries and rules stay
+- [x] Verified: set a PIN, reloaded, reset it, confirmed records untouched
+- **Status:** complete
+
+Reasoning: with no reset, forgetting the PIN meant hand-editing a backup file
+or clearing site data. A reset is not a weakness here, because the PIN was
+never a lock on the data — it only guards the rules screen.
+
 ### Honest note on the PIN
 Stored in the browser, a PIN stops a young child wandering into the parent tab.
 It is not security: anyone who can open devtools can read or clear it. Real
