@@ -133,6 +133,32 @@ Stored in the browser, a PIN stops a young child wandering into the parent tab.
 It is not security: anyone who can open devtools can read or clear it. Real
 separation still waits on the cloud swap and actual accounts.
 
+## v3: Cloud sync (built 2026-09-02)
+
+### Goal
+The same records on every device, and an app that still works with no signal.
+
+Confirmed with the user: Supabase; one family account signed in by magic link;
+readable offline with changes queued and uploaded on reconnect.
+
+### Phases
+- [x] Schema with row-level security, and setup steps the user runs themselves
+- [x] Every entity carries `updatedAt`; deletes became tombstones, because a
+      hard delete on one device is undone by the next pull from another
+- [x] `merge.ts` — last-write-wins per row, pure and tested first (13 tests)
+- [x] `remote.ts` — the one place camelCase meets snake_case
+- [x] `SyncingRepo` — reads local always, writes local first, pushes after
+- [x] Magic-link sign-in and a status line that says what is *not* uploaded yet
+- [x] Verified with no keys (app unchanged) and with keys (panel appears)
+- [ ] **Not verified: a real round trip.** Needs the user's Supabase project.
+- **Status:** built, awaiting live verification
+
+### Why last-write-wins and not something cleverer
+Merging two edits of the same entry needs a rule a parent can predict. "The
+most recent change wins" is explainable in one sentence. A proper CRDT would
+avoid losing the older edit, at a cost in complexity far past what a family
+ledger justifies.
+
 ## Deferred (explicitly out of v1)
 - `AuthProvider` seam and parent login. Over local storage a login is not a
   security boundary, so it was left out rather than faked. It belongs with the

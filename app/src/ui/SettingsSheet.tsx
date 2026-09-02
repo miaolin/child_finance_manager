@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import type { Settings, Snapshot } from '../domain/types.ts'
+import type { SyncStatus } from '../sync/SyncingRepo.ts'
 import { Button, Field, Notice, Sheet } from './components.tsx'
+import { SyncPanel } from './SyncPanel.tsx'
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'CNY', 'JPY', 'CAD', 'AUD', 'SGD']
 
@@ -10,12 +13,20 @@ export function SettingsSheet({
   onExport,
   onImport,
   onClose,
+  cloudConfigured,
+  session,
+  syncStatus,
+  onSyncNow,
 }: {
   settings: Settings
   onUpdate: (edits: Partial<Settings>) => Promise<void>
   onExport: () => Promise<Snapshot>
   onImport: (snapshot: Snapshot) => Promise<void>
   onClose: () => void
+  cloudConfigured: boolean
+  session: Session | null
+  syncStatus: SyncStatus | null
+  onSyncNow: () => void
 }) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -58,11 +69,16 @@ export function SettingsSheet({
           </select>
         </Field>
 
+        {cloudConfigured ? (
+          <SyncPanel session={session} status={syncStatus} onSyncNow={onSyncNow} />
+        ) : null}
+
         <div className="backup">
           <h3>Backup</h3>
           <p className="backup__text">
-            This app keeps everything in this browser on this device. Clearing the browser's site
-            data erases it, so save a copy somewhere safe.
+            {session
+              ? 'A backup file is a copy you hold yourself, separate from the cloud.'
+              : "This app keeps everything in this browser on this device. Clearing the browser's site data erases it, so save a copy somewhere safe."}
           </p>
           <div className="backup__actions">
             <Button onClick={() => void download()}>Save a backup file</Button>

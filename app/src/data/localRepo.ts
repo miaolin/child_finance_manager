@@ -33,6 +33,16 @@ import type {
 
 const STORAGE_KEY = 'child-finance-manager/v1'
 
+/**
+ * Seeded defaults are stamped at the epoch so that anything the parent later
+ * changes — or anything already in the cloud — always wins over them.
+ */
+const EPOCH = '1970-01-01T00:00:00.000Z'
+
+function now(): string {
+  return new Date().toISOString()
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   currency: 'SGD',
   // Paired with the currency: under en-US, SGD formats as "SGD 12.50", while
@@ -51,7 +61,7 @@ function emptySnapshot(): Snapshot {
     version: 1,
     children: [],
     transactions: [],
-    categories: DEFAULT_CATEGORIES.map((c) => ({ ...c })),
+    categories: DEFAULT_CATEGORIES.map((c) => ({ ...c, updatedAt: EPOCH })),
     chores: [],
     settings: { ...DEFAULT_SETTINGS },
     exportedAt: new Date().toISOString(),
@@ -74,9 +84,11 @@ export function normalizeSnapshot(raw: unknown): Snapshot {
   const data = raw as Partial<Snapshot>
 
   const children = Array.isArray(data.children)
-    ? data.children.filter(
-        (c): c is Child => !!c && typeof c.id === 'string' && typeof c.name === 'string',
-      )
+    ? data.children
+        .filter((c): c is Child => !!c && typeof c.id === 'string' && typeof c.name === 'string')
+        // Records written before sync existed have no updatedAt. Dating them
+        // from when they were created keeps them older than any later edit.
+        .map((c) => ({ ...c, updatedAt: c.updatedAt ?? c.createdAt ?? EPOCH }))
     : []
   const knownChildIds = new Set(children.map((c) => c.id))
 
@@ -89,7 +101,7 @@ export function normalizeSnapshot(raw: unknown): Snapshot {
           Number.isSafeInteger(t.amountCents) &&
           t.amountCents > 0 &&
           (t.kind === 'in' || t.kind === 'out'),
-      )
+      ).map((t) => ({ ...t, updatedAt: t.updatedAt ?? t.createdAt ?? EPOCH }))
     : []
 
   // Files written before the parent view carry no categories. Seeding the
@@ -101,7 +113,7 @@ export function normalizeSnapshot(raw: unknown): Snapshot {
           typeof c.id === 'string' &&
           typeof c.label === 'string' &&
           (c.appliesTo === 'in' || c.appliesTo === 'out'),
-      )
+      ).map((c) => ({ ...c, updatedAt: c.updatedAt ?? EPOCH }))
     : base.categories
 
   const chores = Array.isArray(data.chores)
@@ -112,7 +124,7 @@ export function normalizeSnapshot(raw: unknown): Snapshot {
           typeof c.label === 'string' &&
           Number.isSafeInteger(c.payoutCents) &&
           c.payoutCents > 0,
-      )
+      ).map((c) => ({ ...c, updatedAt: c.updatedAt ?? EPOCH }))
     : []
 
   return {
@@ -150,12 +162,13 @@ export class LocalRepo implements FinanceRepo {
   }
 
   async listChildren(): Promise<Child[]> {
-    return this.read().children.filter((c) => !c.archivedAt)
+    return this.read().children.filter((c) => !c.archivedAt && !c.deletedAt)
   }
 
   async addChild(child: NewChild): Promise<Child> {
     const snapshot = this.read()
-    const created: Child = { ...child, id: newId(), createdAt: new Date().toISOString() }
+    const stamp = now()
+    const created: Child = { ...child, id: newId(), createdAt: stamp, updatedAt: stamp }
     snapshot.children.push(created)
     this.write(snapshot)
     return created
@@ -165,22 +178,28 @@ export class LocalRepo implements FinanceRepo {
     const snapshot = this.read()
     const child = snapshot.children.find((c) => c.id === id)
     if (!child) throw new Error(`No child with id ${id}`)
-    Object.assign(child, edits)
+    Object.assign(child, edits, { updatedAt: now() })
     this.write(snapshot)
     return child
   }
 
   async removeChild(id: Id): Promise<void> {
     const snapshot = this.read()
-    snapshot.children = snapshot.children.filter((c) => c.id !== id)
-    // Transactions are meaningless without their child, and leaving them would
-    // let a future child id collision inherit someone else's history.
-    snapshot.transactions = snapshot.transactions.filter((t) => t.childId !== id)
+    const stamp = now()
+    // Tombstoned rather than dropped: another device that has not synced yet
+    // would otherwise push the child straight back.
+    for (const child of snapshot.children) {
+      if (child.id === id) Object.assign(child, { deletedAt: stamp, updatedAt: stamp })
+    }
+    // Transactions are meaningless without their child.
+    for (const tx of snapshot.transactions) {
+      if (tx.childId === id) Object.assign(tx, { deletedAt: stamp, updatedAt: stamp })
+    }
     this.write(snapshot)
   }
 
   async listTransactions(childId?: Id): Promise<Transaction[]> {
-    const all = this.read().transactions
+    const all = this.read().transactions.filter((t) => !t.deletedAt)
     return childId ? all.filter((t) => t.childId === childId) : all
   }
 
@@ -192,8 +211,8 @@ export class LocalRepo implements FinanceRepo {
     if (!Number.isSafeInteger(tx.amountCents) || tx.amountCents <= 0) {
       throw new Error('Amount must be a positive whole number of cents')
     }
-    const now = new Date().toISOString()
-    const created: Transaction = { ...tx, id: newId(), createdAt: now, updatedAt: now }
+    const stamp = now()
+    const created: Transaction = { ...tx, id: newId(), createdAt: stamp, updatedAt: stamp }
     snapshot.transactions.push(created)
     this.write(snapshot)
     return created
@@ -208,19 +227,22 @@ export class LocalRepo implements FinanceRepo {
         throw new Error('Amount must be a positive whole number of cents')
       }
     }
-    Object.assign(tx, edits, { updatedAt: new Date().toISOString() })
+    Object.assign(tx, edits, { updatedAt: now() })
     this.write(snapshot)
     return tx
   }
 
   async removeTransaction(id: Id): Promise<void> {
     const snapshot = this.read()
-    snapshot.transactions = snapshot.transactions.filter((t) => t.id !== id)
+    const stamp = now()
+    for (const tx of snapshot.transactions) {
+      if (tx.id === id) Object.assign(tx, { deletedAt: stamp, updatedAt: stamp })
+    }
     this.write(snapshot)
   }
 
   async listCategories(): Promise<Category[]> {
-    return this.read().categories
+    return this.read().categories.filter((c) => !c.deletedAt)
   }
 
   async addCategory(category: NewCategory): Promise<Category> {
@@ -230,6 +252,7 @@ export class LocalRepo implements FinanceRepo {
       ...category,
       label: category.label.trim(),
       id: categoryIdFor(category.label, snapshot.categories.map((c) => c.id)),
+      updatedAt: now(),
     }
     snapshot.categories.push(created)
     this.write(snapshot)
@@ -240,7 +263,7 @@ export class LocalRepo implements FinanceRepo {
     const snapshot = this.read()
     const category = snapshot.categories.find((c) => c.id === id)
     if (!category) throw new Error(`No category with id ${id}`)
-    Object.assign(category, edits)
+    Object.assign(category, edits, { updatedAt: now() })
     this.write(snapshot)
     return category
   }
@@ -249,12 +272,13 @@ export class LocalRepo implements FinanceRepo {
     const snapshot = this.read()
     const category = snapshot.categories.find((c) => c.id === id)
     if (!category) return
-    category.archivedAt = new Date().toISOString()
+    category.archivedAt = now()
+    category.updatedAt = category.archivedAt
     this.write(snapshot)
   }
 
   async listChores(): Promise<Chore[]> {
-    return this.read().chores.filter((c) => !c.archivedAt)
+    return this.read().chores.filter((c) => !c.archivedAt && !c.deletedAt)
   }
 
   async addChore(chore: NewChore): Promise<Chore> {
@@ -263,7 +287,12 @@ export class LocalRepo implements FinanceRepo {
     if (!Number.isSafeInteger(chore.payoutCents) || chore.payoutCents <= 0) {
       throw new Error('A chore must pay a positive whole number of cents')
     }
-    const created: Chore = { ...chore, label: chore.label.trim(), id: newId() }
+    const created: Chore = {
+      ...chore,
+      label: chore.label.trim(),
+      id: newId(),
+      updatedAt: now(),
+    }
     snapshot.chores.push(created)
     this.write(snapshot)
     return created
@@ -278,7 +307,7 @@ export class LocalRepo implements FinanceRepo {
         throw new Error('A chore must pay a positive whole number of cents')
       }
     }
-    Object.assign(chore, edits)
+    Object.assign(chore, edits, { updatedAt: now() })
     this.write(snapshot)
     return chore
   }
@@ -287,7 +316,8 @@ export class LocalRepo implements FinanceRepo {
     const snapshot = this.read()
     const chore = snapshot.chores.find((c) => c.id === id)
     if (!chore) return
-    chore.archivedAt = new Date().toISOString()
+    chore.archivedAt = now()
+    chore.updatedAt = chore.archivedAt
     this.write(snapshot)
   }
 

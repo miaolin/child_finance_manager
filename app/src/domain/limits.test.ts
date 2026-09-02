@@ -5,7 +5,7 @@ import type { Child, Transaction } from './types.ts'
 function child(limits?: Child['limits']): Child {
   return {
     id: 'c1', name: 'Mia', emoji: '🦊', color: '#000',
-    createdAt: '2026-01-01T00:00:00.000Z', limits,
+    createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', limits,
   }
 }
 
