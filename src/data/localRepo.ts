@@ -85,7 +85,11 @@ export function normalizeSnapshot(raw: unknown): Snapshot {
 }
 
 export class LocalRepo implements FinanceRepo {
-  constructor(private store: KeyValueStore) {}
+  private store: KeyValueStore
+
+  constructor(store: KeyValueStore) {
+    this.store = store
+  }
 
   private read(): Snapshot {
     const raw = this.store.getItem(STORAGE_KEY)

@@ -1,0 +1,90 @@
+/* Design tokens. The whole interface is built from tins and coins: thick ink
+   outlines, hard offset shadows, no soft blur anywhere. */
+
+:root {
+  --paper: #e9f1ea;
+  --paper-deep: #dae7dc;
+  --ink: #22203a;
+  --ink-soft: #5b587a;
+  --panel: #2e2a5c;
+  --coin: #f7c548;
+  --money-in: #1f8a4c;
+  --money-out: #e4572e;
+  --white: #fffdf8;
+
+  --edge: 2.5px solid var(--ink);
+  --drop: 4px 4px 0 var(--ink);
+  --drop-sm: 3px 3px 0 var(--ink);
+
+  --radius-tin: 20px;
+  --radius-slip: 12px;
+  --radius-pill: 999px;
+
+  --step: 8px;
+
+  --font-display: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+  --font-text: 'Work Sans', system-ui, -apple-system, sans-serif;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--panel);
+  outline-offset: 3px;
+}
+
+/* Money always reads in columns, so figures must not jitter between widths. */
+.figure {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

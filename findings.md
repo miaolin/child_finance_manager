@@ -56,7 +56,20 @@ balanceCents(child) = SUM(amountCents where kind='in') - SUM(amountCents where k
 - Project root: /Users/kakalin/Documents/Miao_MacBook_Pro/Study/codes/child_finance_manager
 
 ## Visual/Browser Findings
-- None yet
+Captured from driving the running app at http://localhost:5173 on 2026-09-02.
+
+- Both web fonts load and apply: `document.fonts.check` reported Baloo 2 700 and
+  Work Sans 400/500/600 loaded. An early read of a zoomed screenshot suggested
+  the display face had fallen back; checking the font set directly disproved it.
+- Add -> edit -> delete verified end to end in the real UI. Mia at $11.51, adding
+  $12.50 of chore money gave $24.01 with money-in rising $30.00 -> $42.50;
+  deleting that entry returned both figures exactly.
+- Two children seeded side by side stayed separate: $11.51 and $11.01.
+- The bottom-anchored sheet looked wrong on a desktop-width window; it now
+  centres above 620px and keeps the bottom-sheet form below that.
+- Phone-width layout is unverified: `resize_window` did not change the reported
+  viewport (`window.innerWidth` stayed 2370), so the narrow-width rules have not
+  been seen rendering.
 
 ---
 *Update this file after every 2 view/browser/search operations*

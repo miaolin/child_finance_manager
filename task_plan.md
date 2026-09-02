@@ -4,7 +4,7 @@
 A browser app where each child has their own balance, money coming in and money spent is recorded with a category and note, and the current total is always correct and visible.
 
 ## Current Phase
-Phase 4 — Core Features (in progress)
+Phase 6 — Testing & Delivery (in progress)
 
 ## Confirmed Requirements (from user, 2026-09-02)
 | Question | Answer |
@@ -36,24 +36,26 @@ Phase 4 — Core Features (in progress)
 - [x] `LocalRepo` implementation (browser storage) behind `FinanceRepo`
 - [x] Seed categories
 - [x] 29 unit tests green over money, balance and repo
-- [ ] Verify `npm run dev` boots (after UI exists)
-- **Status:** in_progress
+- [x] Verified `npm run dev` boots and the app renders
+- **Status:** complete
 
 ### Phase 4: Core Features
-- [ ] Manage children: add, rename, pick emoji/color, remove
-- [ ] Home screen: one card per child showing current balance
-- [ ] Child screen: big balance + "Got money" / "Spent" actions
-- [ ] Add transaction: amount, category, note, date
-- [ ] Transaction list grouped by date, with edit and delete
-- [ ] Balance recomputes correctly after every edit/delete
-- **Status:** pending
+- [x] Manage children: add, rename, pick emoji/color, remove
+- [x] Home screen: one tin per child showing current balance
+- [x] Child screen: big balance + "Got money" / "Spent money" actions
+- [x] Add transaction: amount, category, note, date
+- [x] Transaction list grouped by date, with edit and delete
+- [x] Balance recomputes correctly after every edit/delete
+- **Status:** complete
 
 ### Phase 5: Polish & Data Safety
-- [ ] Kid-friendly visual design (large numbers, emoji categories, clear +/- colors)
-- [ ] Export / import all data as JSON (backup + the migration path to cloud)
-- [ ] Parent gate seam: `AuthProvider` interface, local single-parent profile for now
-- [ ] Empty states and input validation (no negative or zero amounts, no future-dated typos)
-- **Status:** pending
+- [x] Kid-friendly visual design: tin-and-coin system, chunky ink borders, hard
+      offset shadows, Baloo 2 for figures and Work Sans for reading
+- [x] Export / import all data as JSON (backup + the migration path to cloud)
+- [x] Empty states and input validation (no zero, negative or fractional cents,
+      no future-dated entries)
+- [ ] Parent gate seam: NOT BUILT — see Deferred
+- **Status:** complete apart from the auth seam
 
 ### Phase 6: Testing & Delivery
 - [ ] Test: add, edit, delete, per-child isolation, balance math
@@ -63,6 +65,9 @@ Phase 4 — Core Features (in progress)
 - **Status:** pending
 
 ## Deferred (explicitly out of v1)
+- `AuthProvider` seam and parent login. Over local storage a login is not a
+  security boundary, so it was left out rather than faked. It belongs with the
+  cloud swap, where it becomes real.
 - Savings goals with progress bars
 - Spending reports and charts
 - Recurring allowance / chore automation

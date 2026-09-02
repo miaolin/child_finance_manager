@@ -1,0 +1,620 @@
+/* Layout ------------------------------------------------------------------ */
+
+.app {
+  min-height: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: calc(var(--step) * 2) calc(var(--step) * 2) calc(var(--step) * 8);
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--step);
+  padding: calc(var(--step) * 1.5) 0 calc(var(--step) * 3);
+}
+
+.topbar__title {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.topbar__back,
+.topbar__settings {
+  border: var(--edge);
+  background: var(--white);
+  border-radius: var(--radius-pill);
+  padding: 6px 16px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  box-shadow: var(--drop-sm);
+}
+
+.topbar__back:active,
+.topbar__settings:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* Home: a shelf of tins --------------------------------------------------- */
+
+.tins {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: calc(var(--step) * 2);
+}
+
+.tin {
+  --tin-color: var(--coin);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-height: 168px;
+  padding: calc(var(--step) * 2);
+  text-align: left;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-tin);
+  box-shadow: var(--drop);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.tin:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* The coloured band is the tin's lid: it identifies whose money this is. */
+.tin__lid {
+  display: flex;
+  align-items: center;
+  gap: var(--step);
+  align-self: stretch;
+  margin: calc(var(--step) * -2) calc(var(--step) * -2) var(--step);
+  padding: calc(var(--step) * 1.5) calc(var(--step) * 2);
+  background: var(--tin-color);
+  border-bottom: var(--edge);
+  border-radius: 17px 17px 0 0;
+}
+
+.tin__emoji {
+  font-size: 1.5rem;
+}
+
+.tin__name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.tin__amount {
+  margin-top: auto;
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tin__amount--short {
+  color: var(--money-out);
+}
+
+.tin__caption {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.tin--add {
+  align-items: center;
+  justify-content: center;
+  gap: var(--step);
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.tin--add:active {
+  box-shadow: none;
+}
+
+.tin__plus {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+/* Child screen: the balance is the one loud thing ------------------------- */
+
+.balance {
+  position: relative;
+  padding: calc(var(--step) * 3) calc(var(--step) * 3) calc(var(--step) * 2.5);
+  background: var(--panel);
+  color: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-tin);
+  box-shadow: var(--drop);
+  overflow: hidden;
+}
+
+/* The same coloured lid as the tin on the shelf, so whose money this is stays
+   recognisable across both screens. */
+.balance::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: var(--tin-color, var(--coin));
+  border-bottom: var(--edge);
+}
+
+.balance__who {
+  margin: var(--step) 0 0;
+  font-size: 1rem;
+  color: #cfcbe8;
+}
+
+.balance__figure {
+  margin: 4px 0 calc(var(--step) * 2);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 16vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--coin);
+}
+
+.balance__figure--short {
+  color: #ff9d7a;
+}
+
+.balance__totals {
+  display: flex;
+  gap: calc(var(--step) * 4);
+  margin: 0;
+  padding-top: calc(var(--step) * 2);
+  border-top: 2px solid #4a4682;
+}
+
+.balance__totals dt {
+  font-size: 0.875rem;
+  color: #cfcbe8;
+}
+
+.balance__totals dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.child__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--step) * 1.5);
+  margin: calc(var(--step) * 3) 0;
+}
+
+.child__edit {
+  display: block;
+  margin: calc(var(--step) * 4) auto 0;
+  padding: 6px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--ink-soft);
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}
+
+/* History: each entry is a paper slip ------------------------------------- */
+
+.history__day + .history__day {
+  margin-top: calc(var(--step) * 3);
+}
+
+.history__date {
+  margin-bottom: var(--step);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.slips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.slip {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--step) * 1.5);
+  width: 100%;
+  padding: calc(var(--step) * 1.5) calc(var(--step) * 2);
+  text-align: left;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-slip);
+  box-shadow: var(--drop-sm);
+}
+
+.slip:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.slip__emoji {
+  font-size: 1.5rem;
+}
+
+.slip__what {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.slip__label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slip__category {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.slip__amount {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.slip__amount--in {
+  color: var(--money-in);
+}
+
+.slip__amount--out {
+  color: var(--money-out);
+}
+
+/* Buttons ----------------------------------------------------------------- */
+
+.btn {
+  padding: 12px 22px;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--drop);
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+.btn--in {
+  background: var(--money-in);
+  color: var(--white);
+}
+
+.btn--out {
+  background: var(--money-out);
+  color: var(--white);
+}
+
+.btn--panel {
+  background: var(--panel);
+  color: var(--white);
+}
+
+.btn--quiet {
+  background: transparent;
+  box-shadow: none;
+  border-color: var(--ink-soft);
+  color: var(--ink-soft);
+  font-family: var(--font-text);
+  font-weight: 500;
+}
+
+.btn--quiet:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Sheets and forms -------------------------------------------------------- */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(34 32 58 / 45%);
+  z-index: 10;
+}
+
+.sheet {
+  width: min(560px, 100%);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: var(--edge);
+  border-radius: var(--radius-tin) var(--radius-tin) 0 0;
+  animation: rise 0.18s ease-out;
+}
+
+/* On anything wider than a phone the sheet sits centred rather than clinging
+   to the bottom edge, which only reads as deliberate on a handset. */
+@media (min-width: 620px) {
+  .scrim {
+    align-items: center;
+    padding: calc(var(--step) * 3);
+  }
+
+  .sheet {
+    max-height: 86vh;
+    border-radius: var(--radius-tin);
+    box-shadow: var(--drop);
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(16px);
+  }
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--step);
+  padding: calc(var(--step) * 2) calc(var(--step) * 2.5);
+  border-bottom: var(--edge);
+}
+
+.sheet__head h2 {
+  font-size: 1.25rem;
+}
+
+.sheet__close {
+  width: 34px;
+  height: 34px;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-pill);
+  line-height: 1;
+}
+
+.sheet__body {
+  overflow-y: auto;
+  padding: calc(var(--step) * 2.5);
+}
+
+.txform {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--step) * 2.5);
+}
+
+.txform__who {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.txform__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.field__hint {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-slip);
+}
+
+.input--amount {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.picker {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--step);
+  margin-top: var(--step);
+}
+
+.picker__grid--emoji {
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+}
+
+.picker__grid--color {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  background: var(--white);
+  border: var(--edge);
+  border-radius: var(--radius-slip);
+}
+
+.chip--on {
+  background: var(--coin);
+  box-shadow: var(--drop-sm);
+}
+
+.chip__emoji {
+  font-size: 1.5rem;
+}
+
+.chip__label {
+  font-size: 0.75rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.chip--emoji {
+  padding: 8px;
+  font-size: 1.5rem;
+}
+
+.swatch {
+  width: 44px;
+  height: 44px;
+  border: var(--edge);
+  border-radius: var(--radius-pill);
+}
+
+.swatch--on {
+  box-shadow: var(--drop-sm);
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.notice {
+  margin: 0;
+  padding: 10px 14px;
+  background: #ffe9e0;
+  border: 2.5px solid var(--money-out);
+  border-radius: var(--radius-slip);
+  font-size: 0.9375rem;
+}
+
+.backup h3 {
+  font-size: 1.0625rem;
+  margin-bottom: 4px;
+}
+
+.backup__text {
+  margin: 0 0 var(--step);
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.backup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step);
+  margin-bottom: var(--step);
+}
+
+.danger {
+  padding-top: calc(var(--step) * 2);
+  border-top: 2px dashed var(--ink-soft);
+}
+
+.danger__text {
+  margin: 0 0 var(--step);
+  font-size: 0.9375rem;
+}
+
+.danger__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step);
+}
+
+/* Empty states ------------------------------------------------------------ */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--step);
+  padding: calc(var(--step) * 6) calc(var(--step) * 2);
+  text-align: center;
+}
+
+.empty--inline {
+  padding: calc(var(--step) * 4) 0;
+}
+
+.empty__coin {
+  margin: 0;
+  font-size: 3.5rem;
+}
+
+.empty__text {
+  margin: 0 0 var(--step);
+  max-width: 40ch;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 480px) {
+  .child__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .balance__totals {
+    gap: calc(var(--step) * 3);
+  }
+}
