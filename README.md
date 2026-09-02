@@ -6,7 +6,10 @@ always the sum of the two.
 
 ## Running it
 
+The app lives in `app/`. Everything below runs from there.
+
 ```bash
+cd app
 npm install
 npm run dev      # http://localhost:5173
 ```
@@ -14,7 +17,7 @@ npm run dev      # http://localhost:5173
 Other commands:
 
 ```bash
-npm run build    # typecheck and produce dist/
+npm run build    # typecheck and produce app/dist/
 npm test         # unit tests
 npm run lint
 ```
@@ -22,10 +25,15 @@ npm run lint
 ## How it is put together
 
 ```
-src/
-  domain/     the rules: money, balances, categories  (no React, no storage)
-  data/       FinanceRepo interface + LocalRepo, its browser-storage version
-  ui/         screens and components
+README.md          this file
+task_plan.md       phases and decisions
+findings.md        what was discovered and why things were chosen
+progress.md        session log and test results
+app/               the deployable web app
+  src/
+    domain/        the rules: money, balances, categories  (no React, no storage)
+    data/          FinanceRepo interface + LocalRepo, its browser-storage version
+    ui/            screens and components
 ```
 
 Two rules hold throughout:
@@ -49,13 +57,32 @@ replaces what is on the device with that file.
 There is no login. Anyone who can open this browser can see and change the
 records.
 
+## Deploying
+
+The build is a static bundle with no server behind it, so any static host will
+serve it. On Vercel, set **Root Directory** to `app` — the rest is detected
+(`npm run build`, output `app/dist`). There is no client-side routing, so no
+rewrite rule is needed.
+
+Two things that deploying does not solve:
+
+- **It does not give you sync.** Storage is per browser and per device, so the
+  same deployed URL opened on three devices holds three unrelated sets of
+  records. Sharing one family ledger needs the cloud swap below.
+- **It does not add a login.** Anyone with the link can read and change the
+  records. Put an auth gate in front of the deployment if that matters.
+
+Records do not travel between origins either: to carry existing data from
+`localhost` to the deployed site, use *Save a backup file* on one and *Load a
+backup file* on the other.
+
 ## Moving to a cloud database later
 
-Every screen talks to the `FinanceRepo` interface in `src/data/repo.ts` and
+Every screen talks to the `FinanceRepo` interface in `app/src/data/repo.ts` and
 never to storage directly. Adding sync means:
 
 1. Writing a second class against `FinanceRepo` (for example against Supabase).
-2. Changing the one line in `src/App.tsx` that calls `createLocalRepo()`.
+2. Changing the one line in `app/src/App.tsx` that calls `createLocalRepo()`.
 3. Exporting a backup file and importing it once, to carry existing records over.
 
 No screen or component changes.
