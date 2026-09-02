@@ -4,7 +4,7 @@
 A browser app where each child has their own balance, money coming in and money spent is recorded with a category and note, and the current total is always correct and visible.
 
 ## Current Phase
-Phase 1 complete — awaiting go-ahead for Phase 2
+Phase 4 — Core Features (in progress)
 
 ## Confirmed Requirements (from user, 2026-09-02)
 | Question | Answer |
@@ -23,19 +23,21 @@ Phase 1 complete — awaiting go-ahead for Phase 2
 - **Status:** complete
 
 ### Phase 2: Design & Data Model
-- [ ] Finalize entities: Child, Transaction, Category, Settings
-- [ ] Define the `FinanceRepo` interface that the whole UI talks to
-- [ ] Define balance rule: derived by summing transactions, never stored
-- [ ] Define money rule: integer cents everywhere, formatted only at display
-- [ ] Sketch the four screens
-- **Status:** pending
+- [x] Finalize entities: Child, Transaction, Category, Settings
+- [x] Define the `FinanceRepo` interface that the whole UI talks to
+- [x] Define balance rule: derived by summing transactions, never stored
+- [x] Define money rule: integer cents everywhere, formatted only at display
+- [x] Sketch the four screens
+- **Status:** complete
 
 ### Phase 3: Project Scaffold
-- [ ] Vite + React + TypeScript project
-- [ ] Folder structure: src/domain, src/data, src/ui
-- [ ] `LocalRepo` implementation (browser storage) behind `FinanceRepo`
-- [ ] Seed categories; verify `npm run dev` boots
-- **Status:** pending
+- [x] Vite + React + TypeScript project
+- [x] Folder structure: src/domain, src/data, src/ui
+- [x] `LocalRepo` implementation (browser storage) behind `FinanceRepo`
+- [x] Seed categories
+- [x] 29 unit tests green over money, balance and repo
+- [ ] Verify `npm run dev` boots (after UI exists)
+- **Status:** in_progress
 
 ### Phase 4: Core Features
 - [ ] Manage children: add, rename, pick emoji/color, remove
