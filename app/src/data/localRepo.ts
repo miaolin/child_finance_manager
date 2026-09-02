@@ -9,11 +9,24 @@
  * instead of a real browser.
  */
 
-import type { Child, Id, Settings, Snapshot, Transaction } from '../domain/types.ts'
+import { DEFAULT_CATEGORIES, categoryIdFor } from '../domain/categories.ts'
 import type {
+  Category,
+  Child,
+  Chore,
+  Id,
+  Settings,
+  Snapshot,
+  Transaction,
+} from '../domain/types.ts'
+import type {
+  CategoryEdits,
   ChildEdits,
+  ChoreEdits,
   FinanceRepo,
+  NewCategory,
   NewChild,
+  NewChore,
   NewTransaction,
   TransactionEdits,
 } from './repo.ts'
@@ -38,6 +51,8 @@ function emptySnapshot(): Snapshot {
     version: 1,
     children: [],
     transactions: [],
+    categories: DEFAULT_CATEGORIES.map((c) => ({ ...c })),
+    chores: [],
     settings: { ...DEFAULT_SETTINGS },
     exportedAt: new Date().toISOString(),
   }
@@ -77,10 +92,35 @@ export function normalizeSnapshot(raw: unknown): Snapshot {
       )
     : []
 
+  // Files written before the parent view carry no categories. Seeding the
+  // defaults keeps their recorded entries resolvable instead of blank.
+  const categories = Array.isArray(data.categories)
+    ? data.categories.filter(
+        (c): c is Category =>
+          !!c &&
+          typeof c.id === 'string' &&
+          typeof c.label === 'string' &&
+          (c.appliesTo === 'in' || c.appliesTo === 'out'),
+      )
+    : base.categories
+
+  const chores = Array.isArray(data.chores)
+    ? data.chores.filter(
+        (c): c is Chore =>
+          !!c &&
+          typeof c.id === 'string' &&
+          typeof c.label === 'string' &&
+          Number.isSafeInteger(c.payoutCents) &&
+          c.payoutCents > 0,
+      )
+    : []
+
   return {
     version: 1,
     children,
     transactions,
+    categories: categories.length > 0 ? categories : base.categories,
+    chores,
     settings: { ...DEFAULT_SETTINGS, ...(data.settings ?? {}) },
     exportedAt: typeof data.exportedAt === 'string' ? data.exportedAt : base.exportedAt,
   }
@@ -176,6 +216,78 @@ export class LocalRepo implements FinanceRepo {
   async removeTransaction(id: Id): Promise<void> {
     const snapshot = this.read()
     snapshot.transactions = snapshot.transactions.filter((t) => t.id !== id)
+    this.write(snapshot)
+  }
+
+  async listCategories(): Promise<Category[]> {
+    return this.read().categories
+  }
+
+  async addCategory(category: NewCategory): Promise<Category> {
+    const snapshot = this.read()
+    if (category.label.trim() === '') throw new Error('A category needs a name')
+    const created: Category = {
+      ...category,
+      label: category.label.trim(),
+      id: categoryIdFor(category.label, snapshot.categories.map((c) => c.id)),
+    }
+    snapshot.categories.push(created)
+    this.write(snapshot)
+    return created
+  }
+
+  async updateCategory(id: Id, edits: CategoryEdits): Promise<Category> {
+    const snapshot = this.read()
+    const category = snapshot.categories.find((c) => c.id === id)
+    if (!category) throw new Error(`No category with id ${id}`)
+    Object.assign(category, edits)
+    this.write(snapshot)
+    return category
+  }
+
+  async archiveCategory(id: Id): Promise<void> {
+    const snapshot = this.read()
+    const category = snapshot.categories.find((c) => c.id === id)
+    if (!category) return
+    category.archivedAt = new Date().toISOString()
+    this.write(snapshot)
+  }
+
+  async listChores(): Promise<Chore[]> {
+    return this.read().chores.filter((c) => !c.archivedAt)
+  }
+
+  async addChore(chore: NewChore): Promise<Chore> {
+    const snapshot = this.read()
+    if (chore.label.trim() === '') throw new Error('A chore needs a name')
+    if (!Number.isSafeInteger(chore.payoutCents) || chore.payoutCents <= 0) {
+      throw new Error('A chore must pay a positive whole number of cents')
+    }
+    const created: Chore = { ...chore, label: chore.label.trim(), id: newId() }
+    snapshot.chores.push(created)
+    this.write(snapshot)
+    return created
+  }
+
+  async updateChore(id: Id, edits: ChoreEdits): Promise<Chore> {
+    const snapshot = this.read()
+    const chore = snapshot.chores.find((c) => c.id === id)
+    if (!chore) throw new Error(`No chore with id ${id}`)
+    if (edits.payoutCents !== undefined) {
+      if (!Number.isSafeInteger(edits.payoutCents) || edits.payoutCents <= 0) {
+        throw new Error('A chore must pay a positive whole number of cents')
+      }
+    }
+    Object.assign(chore, edits)
+    this.write(snapshot)
+    return chore
+  }
+
+  async archiveChore(id: Id): Promise<void> {
+    const snapshot = this.read()
+    const chore = snapshot.chores.find((c) => c.id === id)
+    if (!chore) return
+    chore.archivedAt = new Date().toISOString()
     this.write(snapshot)
   }
 

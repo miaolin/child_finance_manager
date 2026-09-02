@@ -7,6 +7,8 @@ always the sum of the two.
 Live at **https://child-finance-manager-lvca.vercel.app** — the link is public
 and there is no login, so treat it as readable by anyone who has it.
 
+Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
+
 ## Running it
 
 The app lives in `app/`. Everything below runs from there.
