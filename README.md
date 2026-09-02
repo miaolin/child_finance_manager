@@ -4,6 +4,9 @@ A browser app for keeping track of what each child has and what they spend.
 Each child gets their own tin: money in, money out, and a balance that is
 always the sum of the two.
 
+Live at **https://child-finance-manager-lvca.vercel.app** — the link is public
+and there is no login, so treat it as readable by anyone who has it.
+
 ## Running it
 
 The app lives in `app/`. Everything below runs from there.
@@ -59,10 +62,10 @@ records.
 
 ## Deploying
 
-The build is a static bundle with no server behind it, so any static host will
-serve it. On Vercel, set **Root Directory** to `app` — the rest is detected
-(`npm run build`, output `app/dist`). There is no client-side routing, so no
-rewrite rule is needed.
+Deployed on Vercel from `main`, with **Root Directory** set to `app`; the rest
+is detected (`npm run build`, output `app/dist`). There is no client-side
+routing, so no rewrite rule is needed. The build is a static bundle with no
+server behind it, so any static host would serve it equally well.
 
 Two things that deploying does not solve:
 
