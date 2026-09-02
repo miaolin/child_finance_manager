@@ -6,6 +6,36 @@ Versions follow [semantic versioning](https://semver.org): the first number
 changes when the way the app is used changes, the second when something is
 added, the third for fixes.
 
+## 3.1.0 — 2026-09-02
+
+Sync worked in tests but had never once carried data between two real devices.
+This is the fix for why.
+
+### Changed
+
+- **Sign in with an email and a password**, not a link. A sign-in link has to be
+  opened in the browser that asked for it, and a mail app hands it to whichever
+  browser is the default — so the wrong browser gets signed in and the records
+  stay stranded on the right one. That failed four times in a row on a real
+  setup. A password works wherever it is typed.
+- **Changes now appear on other devices by themselves**, usually within a second
+  or two. "Sync now" became "Check now" and is only there for when you want to
+  force it.
+
+### Added
+
+- Sign-in errors say what to do — "use Create the account instead" rather than
+  "invalid login credentials".
+
+### Notes
+
+- Setup changed: email confirmation should be **off**, and the tables must be
+  added to the realtime publication. Re-run `supabase/schema.sql`; it is safe
+  to run again and only adds what is missing.
+- An account made under the old link-based sign-in has no password. The
+  simplest fix is to delete that user in the Supabase dashboard and create a
+  fresh account from the app.
+
 ## 3.0.0 — 2026-09-02
 
 The same records on every device, and an app that still works without a signal.

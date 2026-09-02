@@ -91,3 +91,30 @@
 
 ---
 *Update after completing each phase or encountering errors*
+
+## Session: 2026-09-02 (later) — sync redo
+
+### Why
+Cloud sync had never carried data between two devices. Probed the computer's
+own browser storage directly: no session, never synced. The engine was fine;
+sign-in was the failure.
+
+### Research
+Read `cloud.js`, `firebase-config.js`, `auth-ui.js` and `SETUP.md` in
+github.com/miaolin/Olivia_study_plan. It syncs reliably and uses **email +
+password** — its setup explicitly says "leave passwordless off". See findings.md.
+
+### Done
+- Replaced magic link with email + password sign-in, with errors written for a
+  parent rather than a developer
+- Added Supabase Realtime so a change on one device reaches the others on its own
+- Added the tables to the realtime publication in schema.sql
+- Rewrote the setup steps; confirmation email now off, with the trade explained
+
+### Test Results
+| Test | Expected | Actual | Status |
+|------|----------|--------|--------|
+| Unit suite | green | 81 passed | pass |
+| Typecheck + build | clean | clean | pass |
+| Sign-in UI renders | email + password + two buttons | as expected | pass |
+| Two real devices sharing records | records appear on both | **not yet — needs the user** | pending |
