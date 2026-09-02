@@ -9,6 +9,7 @@ export const CATEGORIES: Category[] = [
   { id: 'chores', label: 'Chores', emoji: '🧹', appliesTo: 'in' },
   { id: 'gift', label: 'Gift', emoji: '🎁', appliesTo: 'in' },
   { id: 'found', label: 'Found it', emoji: '🍀', appliesTo: 'in' },
+  { id: 'tennis', label: 'Tennis tournament', emoji: '🎾', appliesTo: 'in' },
   { id: 'other-in', label: 'Something else', emoji: '💰', appliesTo: 'in' },
 
   { id: 'snacks', label: 'Snacks', emoji: '🍦', appliesTo: 'out' },
