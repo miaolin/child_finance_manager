@@ -6,6 +6,36 @@ Versions follow [semantic versioning](https://semver.org): the first number
 changes when the way the app is used changes, the second when something is
 added, the third for fixes.
 
+## 3.2.0 — 2026-09-14
+
+The app is used on an iPhone or an iPad nearly all of the time, so it is now
+built for that first and for a desktop browser second.
+
+### Added
+
+- **Add it to the home screen** and it opens as its own app: no browser bars,
+  its own coin icon, its own name. It also opens with no connection at all —
+  the page keeps a copy of itself, which is what the records already did.
+- **The history sits beside the balance on an iPad** held sideways, instead of
+  a scroll below it.
+
+### Changed
+
+- The page runs edge to edge under the notch and the home indicator, with the
+  gutters to keep every figure and button clear of them, in both orientations.
+- The bar with **All tins** and **Settings** stays at the top of the screen
+  rather than scrolling away above a long history.
+- Every button and field is at least 44px tall — the smallest target a finger
+  hits reliably.
+- Sheets use the height that is actually visible, so the on-screen keyboard no
+  longer covers the Save button, and the tins no longer scroll away behind an
+  open sheet. On a phone held sideways a sheet takes the whole screen.
+- A chore's name is no longer squeezed into a sliver by the price beside it: on
+  a phone the price and the button move to a second line.
+- Tapping no longer flashes a grey box, selects the label, or waits to see
+  whether a second tap is coming; focusing a field no longer zooms the page in
+  and leaves it there.
+
 ## 3.1.0 — 2026-09-02
 
 Sync worked in tests but had never once carried data between two real devices.
