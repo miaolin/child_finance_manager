@@ -52,12 +52,49 @@ export function Sheet({
       if (event.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
+    return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  // Hold the page still underneath. `overflow: hidden` alone is ignored by
+  // Safari on iOS, which happily scrolls the tins away behind the sheet, so
+  // the body is pinned at its current offset and put back on close.
+  useEffect(() => {
+    const body = document.body
+    const y = window.scrollY
+    const before = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      overflow: body.style.overflow,
+    }
+    body.style.position = 'fixed'
+    body.style.top = `-${y}px`
+    body.style.left = '0'
+    body.style.right = '0'
+    body.style.overflow = 'hidden'
+    return () => {
+      Object.assign(body.style, before)
+      window.scrollTo(0, y)
+    }
+  }, [])
+
+  // The on-screen keyboard does not make the window shorter on iOS — it
+  // shrinks the visual viewport. Measuring that is what keeps Save above the
+  // keys rather than behind them.
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+    const measure = () => {
+      document.documentElement.style.setProperty('--visible-height', `${viewport.height}px`)
+    }
+    measure()
+    viewport.addEventListener('resize', measure)
+    return () => {
+      viewport.removeEventListener('resize', measure)
+      document.documentElement.style.removeProperty('--visible-height')
+    }
+  }, [])
 
   return (
     <div className="scrim" onMouseDown={onClose}>

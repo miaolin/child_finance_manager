@@ -119,3 +119,30 @@ password** — its setup explicitly says "leave passwordless off". See findings.
 | Sign-in UI renders | email + password + two buttons | as expected | pass |
 | Two real devices sharing records | records appear on both | computer and iPad both signed in, same records | **pass** |
 | Cloud actually holds the data | Ian + 2 entries | 1 child, 2 transactions (+$100.00, +$40.00), 14 categories | **pass** |
+
+## Session: 2026-09-14 — built for the iPhone and the iPad
+
+### Why
+The app is used on a phone or a tablet nearly all of the time. It was readable
+there, being a single narrow column, but it was not built for it: nothing knew
+about the notch or the home indicator, the keyboard covered the Save button,
+several targets were 34px, and an iPad showed a phone layout on a large screen.
+
+### Done
+- Home-screen install: web app manifest, Apple meta tags, coin icons at 180 /
+  192 / 512, and a service worker so it opens with no connection
+- Safe-area gutters on the page, the sheets and the top bar, in both orientations
+- Sticky top bar; two-column child screen from 840px; jobs wide enough to read
+- Sheets sized to the visible viewport (keyboard, Safari toolbars), page held
+  still behind an open sheet, full-screen sheet on a phone held sideways
+- 44px minimum on every control; priced rows break to two lines on a phone
+- No tap highlight, no double-tap delay, no zoom-on-focus, no long-press callout
+
+### Test Results
+| Test | Expected | Actual | Status |
+|------|----------|--------|--------|
+| Unit suite | green | 81 passed | pass |
+| Typecheck + build | clean | clean | pass |
+| No sideways scroll, 320→1194px | none at any width | none, on every screen | pass |
+| Sheet open | page behind held still | body pinned, offset restored on close | pass |
+| Service worker | shell cached, opens offline | app loaded with the server stopped | pass |

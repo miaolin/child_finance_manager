@@ -38,6 +38,16 @@ body,
   height: 100%;
 }
 
+/* Safari's toolbars grow and shrink as you scroll, so the honest full height
+   on a handset is the dynamic one. Older browsers keep the 100% above. */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
 body {
   margin: 0;
   background: var(--paper);
@@ -46,6 +56,13 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* Rotating an iPhone must not inflate the type. */
+  -webkit-text-size-adjust: 100%;
+  /* No grey flash behind a tap: every control already answers with a press. */
+  -webkit-tap-highlight-color: transparent;
+  /* A drag that runs off the end of a list stays in the list rather than
+     dragging the whole page, or triggering pull-to-refresh. */
+  overscroll-behavior-y: contain;
 }
 
 h1,
@@ -61,6 +78,12 @@ button {
   font: inherit;
   color: inherit;
   cursor: pointer;
+  /* Skips the 300ms double-tap-to-zoom wait on iOS, and stops a firm press
+     from selecting the label or raising the copy/look-up callout. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 input,
@@ -68,6 +91,19 @@ select,
 textarea {
   font: inherit;
   color: inherit;
+  /* Anything under 16px makes iOS zoom the page when the field takes focus,
+     and it never zooms back out. The larger fields set their own size. */
+  font-size: max(16px, 1em);
+  touch-action: manipulation;
+}
+
+/* iOS gives fields a rounded inner shadow of its own; the app draws its own
+   edges. Checkboxes and radios keep their native look — there are none yet,
+   but stripping them would leave nothing to see. */
+input:not([type='checkbox']):not([type='radio']),
+textarea {
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 :focus-visible {

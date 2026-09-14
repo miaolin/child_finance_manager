@@ -4,7 +4,21 @@
   min-height: 100%;
   max-width: 720px;
   margin: 0 auto;
-  padding: calc(var(--step) * 2) calc(var(--step) * 2) calc(var(--step) * 8);
+  /* The page runs edge to edge under the notch and the home indicator, and
+     these gutters keep what matters clear of them. In landscape on a notched
+     iPhone the sensor housing sits beside the page, so the side inset is not
+     always zero. The top gutter belongs to the bar below, which is sticky. */
+  padding-top: 0;
+  padding-right: calc(var(--step) * 2 + env(safe-area-inset-right, 0px));
+  padding-bottom: calc(var(--step) * 8 + env(safe-area-inset-bottom, 0px));
+  padding-left: calc(var(--step) * 2 + env(safe-area-inset-left, 0px));
+}
+
+/* An iPad has room for more of the shelf at once. */
+@media (min-width: 840px) {
+  .app {
+    max-width: 960px;
+  }
 }
 
 .loading {
@@ -15,12 +29,24 @@
   font-size: 1.25rem;
 }
 
+/* Held at the top so "All tins" stays in reach part-way down a long history,
+   which on a handset is most of the time. It spans the app's own gutters so
+   that slips scroll away underneath it rather than beside it. */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--step);
-  padding: calc(var(--step) * 1.5) 0 calc(var(--step) * 3);
+  margin-right: calc((var(--step) * 2 + env(safe-area-inset-right, 0px)) * -1);
+  margin-left: calc((var(--step) * 2 + env(safe-area-inset-left, 0px)) * -1);
+  padding-top: calc(var(--step) * 1.5 + env(safe-area-inset-top, 0px));
+  padding-right: calc(var(--step) * 2 + env(safe-area-inset-right, 0px));
+  padding-bottom: calc(var(--step) * 2);
+  padding-left: calc(var(--step) * 2 + env(safe-area-inset-left, 0px));
+  background: var(--paper);
 }
 
 .topbar__title {
@@ -30,6 +56,11 @@
 
 .topbar__back,
 .topbar__settings {
+  display: inline-flex;
+  align-items: center;
+  /* 44px is the smallest square a finger hits reliably on iOS, and every
+     control in the app is at least that tall. */
+  min-height: 44px;
   border: var(--edge);
   background: var(--white);
   border-radius: var(--radius-pill);
@@ -210,6 +241,7 @@
 
 .child__edit {
   display: block;
+  min-height: 44px;
   margin: calc(var(--step) * 4) auto 0;
   padding: 6px 16px;
   background: none;
@@ -217,6 +249,27 @@
   border-bottom: 2px solid var(--ink-soft);
   color: var(--ink-soft);
   font-size: 0.9375rem;
+}
+
+/* On an iPad the history has no business being a scroll away: the balance and
+   the buttons take one column, the slips the other. */
+@media (min-width: 840px) {
+  .child {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    column-gap: calc(var(--step) * 3);
+    align-items: start;
+  }
+
+  .child__summary,
+  .child__ledger {
+    min-width: 0;
+  }
+
+  .child__edit {
+    grid-column: 1 / -1;
+    margin-top: calc(var(--step) * 3);
+  }
 }
 
 /* History: each entry is a paper slip ------------------------------------- */
@@ -358,6 +411,9 @@
 .scrim {
   position: fixed;
   inset: 0;
+  /* Matches the part of the window a person can actually see: Safari's
+     toolbars come and go, and the keyboard takes half the screen. */
+  height: var(--visible-height, 100dvh);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -367,7 +423,7 @@
 
 .sheet {
   width: min(560px, 100%);
-  max-height: 92vh;
+  max-height: 92dvh;
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -385,9 +441,24 @@
   }
 
   .sheet {
-    max-height: 86vh;
+    max-height: 86dvh;
     border-radius: var(--radius-tin);
     box-shadow: var(--drop);
+  }
+}
+
+/* A phone on its side has barely 400px of height, and a keyboard takes half
+   of that. There is no room to float the sheet: it takes the screen. */
+@media (max-height: 520px) {
+  .scrim {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .sheet {
+    width: 100%;
+    max-height: none;
+    border-radius: 0;
   }
 }
 
@@ -403,6 +474,9 @@
   justify-content: space-between;
   gap: var(--step);
   padding: calc(var(--step) * 2) calc(var(--step) * 2.5);
+  /* Held on a phone turned sideways, the sensor housing is beside the sheet. */
+  padding-right: calc(var(--step) * 2.5 + env(safe-area-inset-right, 0px));
+  padding-left: calc(var(--step) * 2.5 + env(safe-area-inset-left, 0px));
   border-bottom: var(--edge);
 }
 
@@ -411,8 +485,8 @@
 }
 
 .sheet__close {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   background: var(--white);
   border: var(--edge);
   border-radius: var(--radius-pill);
@@ -421,7 +495,15 @@
 
 .sheet__body {
   overflow-y: auto;
+  /* A flick that runs past the end of the form stays in the form rather than
+     scrolling the tins behind it. */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: calc(var(--step) * 2.5);
+  padding-right: calc(var(--step) * 2.5 + env(safe-area-inset-right, 0px));
+  padding-left: calc(var(--step) * 2.5 + env(safe-area-inset-left, 0px));
+  /* Clear of the home indicator when the sheet is against the bottom edge. */
+  padding-bottom: calc(var(--step) * 2.5 + env(safe-area-inset-bottom, 0px));
 }
 
 .txform {
@@ -461,6 +543,7 @@
 
 .input {
   width: 100%;
+  min-height: 44px;
   padding: 12px 14px;
   background: var(--white);
   border: var(--edge);
@@ -499,7 +582,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  min-height: 44px;
   padding: 10px 6px;
   background: var(--white);
   border: var(--edge);
@@ -638,6 +723,7 @@
 }
 
 .parent__lock {
+  min-height: 44px;
   padding: 6px 16px;
   background: none;
   border: none;
@@ -653,6 +739,9 @@
 }
 
 .tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 8px 16px;
   background: var(--white);
   border: var(--edge);
@@ -713,6 +802,7 @@
 
 .row__emoji {
   width: 52px;
+  min-height: 44px;
   flex: none;
   padding: 8px;
   text-align: center;
@@ -725,6 +815,7 @@
 .row__label {
   flex: 1;
   min-width: 0;
+  min-height: 44px;
   padding: 8px 10px;
   background: var(--paper);
   border: 2px solid var(--ink-soft);
@@ -739,6 +830,7 @@
 
 .row__pay-input {
   width: 90px;
+  min-height: 44px;
   flex: none;
   padding: 8px 10px;
   background: var(--paper);
@@ -747,8 +839,8 @@
 }
 
 .row__remove {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   flex: none;
   background: var(--paper);
   border: 2px solid var(--ink-soft);
@@ -759,6 +851,51 @@
 .row__remove:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+/* A row that also carries a price holds four things, and a phone has no room
+   for them across. The name keeps the first line; the price and the button go
+   under it. Rows with no price already fit and are left alone, as are the
+   browsers without :has(), which keep today's cramped single line.
+
+   The two rows break at different widths because they are not the same size:
+   a row that only shows a price fits well before one that has a field for it
+   and a button beside that. */
+.row:has(.row__pay) .row__emoji,
+.addrow:has(.row__pay-input) .row__emoji {
+  grid-area: 1 / 1;
+}
+
+.row:has(.row__pay) .row__label,
+.addrow:has(.row__pay-input) .row__label {
+  grid-area: 1 / 2 / 2 / -1;
+}
+
+.row:has(.row__pay) .row__pay,
+.addrow:has(.row__pay-input) .row__pay-input {
+  grid-area: 2 / 2;
+  justify-self: start;
+}
+
+.row:has(.row__pay) .row__remove,
+.addrow:has(.row__pay-input) .btn {
+  grid-area: 2 / 3;
+}
+
+@media (max-width: 374px) {
+  .row:has(.row__pay) {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: var(--step);
+  }
+}
+
+@media (max-width: 560px) {
+  .addrow:has(.row__pay-input) {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: var(--step);
+  }
 }
 
 .rulecard {
@@ -825,8 +962,9 @@
 .jobs__list {
   display: grid;
   /* Wide enough that a job named in three or four words is readable rather
-     than clipped to its first word. */
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+     than clipped to its first word — including on an iPad, where a narrower
+     minimum would fit a third column at the cost of the labels. */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--step);
   margin: 0;
   padding: 0;
@@ -838,6 +976,7 @@
   align-items: center;
   gap: var(--step);
   width: 100%;
+  min-height: 48px;
   padding: 10px 12px;
   text-align: left;
   background: var(--coin);
@@ -924,6 +1063,7 @@
 }
 
 .gate__forgot-link {
+  min-height: 44px;
   padding: 4px 8px;
   background: none;
   border: none;

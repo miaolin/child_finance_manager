@@ -49,6 +49,18 @@ Two rules hold throughout:
   recomputed on every read, so editing or deleting history cannot leave a stale
   number behind.
 
+## On a phone or a tablet
+
+This is where the app is actually used, so that is what it is built for. Open
+the link in Safari, then **Share → Add to Home Screen**. It gets the coin icon
+and its own name, opens without browser bars, and opens with no connection —
+the page keeps a copy of itself in the browser, the same way the records are
+already kept there.
+
+The layout follows the device rather than the other way round: one column of
+tins on a phone, the history beside the balance on an iPad held sideways, and
+nothing tucked under the notch or the home indicator in either orientation.
+
 ## Cloud sync
 
 Every device signed into the same email shows the same records, and the app
