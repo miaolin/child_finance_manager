@@ -6,6 +6,36 @@ Versions follow [semantic versioning](https://semver.org): the first number
 changes when the way the app is used changes, the second when something is
 added, the third for fixes.
 
+## 4.0.0 — 2026-09-17
+
+The app had no front door: the deployed link opened straight into it, and
+signing in was an optional extra that only switched on sync. Now signing in is
+how you get in at all.
+
+### Added
+
+- **Continue with Google.** One tap, no password to lose, and the account
+  chooser every time so a shared device does not sign the last person back in.
+  The button only appears when the Supabase project actually offers Google —
+  otherwise the screen says so, rather than sending you to a page of JSON.
+- **A sign-in screen** in front of everything. No tins, no history, no
+  settings until someone is through it.
+
+### Changed
+
+- **The app requires a cloud project.** With no keys configured there is now
+  no way to sign in and so no way in, where before the app ran happily on one
+  browser with no account at all. Anyone who used it that way should save a
+  backup file first, set the project up, and load the file back in once signed
+  in.
+- Signing in and out moved: in at the front door, out from Settings, which now
+  only describes the account and what sync is doing.
+- The sign-in round trip carries a one-use code rather than the session
+  itself, so the access token no longer passes through the address bar and
+  into browser history.
+- A device that is already signed in still opens with no connection — the
+  session is read from the browser, not fetched.
+
 ## 3.2.0 — 2026-09-14
 
 The app is used on an iPhone or an iPad nearly all of the time, so it is now

@@ -4,8 +4,10 @@ A browser app for keeping track of what each child has and what they spend.
 Each child gets their own tin: money in, money out, and a balance that is
 always the sum of the two.
 
-Live at **https://child-finance-manager-lvca.vercel.app** — the link is public
-and there is no login, so treat it as readable by anyone who has it.
+Live at **https://child-finance-manager-lvca.vercel.app**. The link is public;
+the app behind it is not. Signing in — with Google, or with an email and a
+password — is the way in, and until someone does there are no tins, no history
+and no settings to see.
 
 Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
@@ -61,19 +63,23 @@ The layout follows the device rather than the other way round: one column of
 tins on a phone, the history beside the balance on an iPad held sideways, and
 nothing tucked under the notch or the home indicator in either orientation.
 
-## Cloud sync
+## Signing in, and the sync that comes with it
 
-Every device signed into the same email shows the same records, and the app
-keeps working offline: reads come from the local copy, and changes queue until
-there is a connection.
+The account is the same thing as the front door: signing in is what opens the
+app, and it is also what makes every device signed into that account show the
+same records. The app keeps working offline either way — reads come from the
+local copy, changes queue until there is a connection, and a device that is
+already signed in opens with no connection at all, because the session is read
+from the browser rather than from the network.
 
-**It is off until you set it up.** With no keys configured the app stores
-everything in one browser, which is a supported way to use it rather than a
-broken state.
+**Nothing works until it is set up.** With no keys configured there is no way
+to sign in, and so no way in: the app says so on the sign-in screen instead of
+opening. This is a change from earlier versions, which ran happily with no
+account and kept everything in one browser.
 
 ### Setting it up
 
-About fifteen minutes, once. Steps 1 to 4 involve an account and keys, so they
+About twenty minutes, once. Steps 1 to 5 involve an account and keys, so they
 are yours to run.
 
 **1. Create the project.** Sign up at [supabase.com](https://supabase.com) and
@@ -99,13 +105,33 @@ browser and leaves the records stranded on the right one. A password works
 wherever it is typed. Leaving confirmation on would put a link back in the way
 of creating the account.
 
-The trade is that anyone who finds the project could create an account on it.
-They would get their own empty account and could not read yours — that is what
-row-level security is for — but once every device is signed in you can close
-the door: **Authentication → Sign In / Providers → Allow new users to sign up**,
-off.
+**4. Turn on Google sign-in.** This is the tap most people will actually use;
+the email and password stay underneath it as the way in when a Google round
+trip goes wrong.
 
-**4. Copy the two keys.** **Project Settings → API** gives you the **Project
+In the [Google Cloud console](https://console.cloud.google.com/apis/credentials):
+create a project, fill in the OAuth consent screen (**External**, your own
+email as the contact, and add your own Google account under **Test users** —
+an app in testing lets in nobody else, which is the door already closed), then
+**Create credentials → OAuth client ID → Web application**.
+
+Supabase gives you the one address it needs: **Authentication → Sign In /
+Providers → Google** shows a **Callback URL** ending in `/auth/v1/callback`.
+Paste that into **Authorised redirect URIs** on the Google client. Then paste
+the client's **Client ID** and **Client secret** back into that Supabase
+screen, and switch the provider on.
+
+The app checks whether the provider is on before offering the button, so if
+you skip this step you get a line of explanation on the sign-in screen rather
+than a Google button that leads nowhere.
+
+The trade, for either way in, is that anyone who finds the project could
+create an account on it. They would get their own empty account and could not
+read yours — that is what row-level security is for — but once every device is
+signed in you can close the door: **Authentication → Sign In / Providers →
+Allow new users to sign up**, off.
+
+**5. Copy the two keys.** **Project Settings → API** gives you the **Project
 URL** and the **anon public** key. Put them in `app/.env.local`, which is
 git-ignored:
 
@@ -121,15 +147,23 @@ Add the same two to **Vercel → Settings → Environment Variables**.
 > or the repository. The anon key is meant to be public; row-level security is
 > what actually protects the data.
 
-**5. Deploy.** Vercel needs a build that has both the sync code and the
+**6. Deploy.** Vercel needs a build that has both the sync code and the
 variables, so redeploy after adding them.
 
-**6. Create the account, then sign in everywhere.** Start on the device
-holding the records you want to keep: Settings → email and password → **Create
-the account**. Its records upload. On every other device, the same email and
-password → **Sign in**, and they arrive.
+Add the deployed address to the Google client too, under **Authorised
+JavaScript origins**, or Google refuses the sign-in it allowed on localhost.
+
+**7. Sign in everywhere.** Start on the device holding the records you want to
+keep — **Continue with Google**, or an email and password and **Create the
+account**. Its records upload. On every other device, the same account, and
+they arrive.
 
 The order matters because the first device to sign in seeds the cloud.
+
+Pick one way in and use it on every device. The records hang off the account,
+not off the email address printed on it, so if Google and a password ever land
+as two accounts, the second one opens an empty app rather than your records —
+and the fix is to sign out and come back the way the first device did.
 
 ### What sync does and does not do
 
@@ -140,23 +174,22 @@ The order matters because the first device to sign in seeds the cloud.
   says how many changes are waiting.
 - If the same entry is changed on two devices, the more recent change wins.
   There is no merge dialog and no record of what the other device had.
-- Anyone who can read that email inbox can sign in. The inbox is the account.
+- Whoever holds the account holds the records: the Google account, or the
+  inbox that can reset the password. That is what guards them, not the link.
 
 ## Where the data lives
 
 Always in this browser, under one key in `localStorage` — that copy is what
 every screen reads, which is why the app works with no connection.
 
-**Signed in**, that copy is kept in step with your Supabase project, and
-clearing the browser's site data costs you nothing permanent: sign in again and
-the records come back.
+That copy is kept in step with your Supabase project, so clearing the
+browser's site data costs you nothing permanent: sign in again and the records
+come back. Settings still has **Save a backup file** and **Load a backup
+file** — a copy you hold yourself, answering to nobody's account, is worth
+keeping either way.
 
-**Not signed in**, the browser is the only copy. Clearing its site data erases
-the records, and they do not follow you to another device. Settings has **Save
-a backup file** and **Load a backup file**, which is how records move between
-browsers without the cloud — and a backup is worth keeping either way.
-
-Signing out leaves the records on the device. It deletes nothing.
+Signing out leaves the records on the device and deletes nothing, but it does
+close the app: the sign-in screen is what comes back.
 
 ## Deploying
 
@@ -165,11 +198,18 @@ is detected (`npm run build`, output `app/dist`). There is no client-side
 routing, so no rewrite rule is needed. The build is a static bundle with no
 server behind it, so any static host would serve it equally well.
 
-The deployed URL is public, and the app itself has no front door: anyone with
-the link can open it. What they see depends on sync. Signed out, they get an
-empty app with their own browser's records — not yours. Your records reach a
-device only when someone signs into your email, so the inbox is what actually
-guards them.
+The deployed URL is public and the app behind it is not: what anyone without
+an account gets is the sign-in screen. Even past it, an account only ever sees
+its own records — that is row-level security in the database, and it holds
+whether or not anyone is stopped at the door. The door is what keeps the app
+itself from opening to a stranger with the link.
+
+There is no allowlist of permitted addresses. Anyone who can create an account
+on the Supabase project gets their own empty app and cannot read yours. Once
+every device of yours is signed in you can close that off as well:
+**Authentication → Sign In / Providers → Allow new users to sign up**, off,
+and, for Google, leaving the Google Cloud consent screen in testing with only
+your own accounts as test users.
 
 The parent PIN is a separate thing again: it guards the rules screen, not the
 records, and not the deployment.
@@ -180,7 +220,7 @@ Every screen talks to the `FinanceRepo` interface in `app/src/data/repo.ts` and
 never to storage directly. That is what made cloud sync an addition rather than
 a rewrite:
 
-- `LocalRepo` — the browser copy, and the whole app when signed out.
+- `LocalRepo` — the browser copy, which every screen reads from.
 - `SyncingRepo` — wraps `LocalRepo` when signed in. Reads still come from
   local; writes go local first and upload after.
 - `sync/merge.ts` — decides which version of a row wins when two devices

@@ -9,6 +9,7 @@ import { HomeScreen } from './ui/HomeScreen.tsx'
 import { ParentView } from './ui/ParentView.tsx'
 import { PinGate } from './ui/PinGate.tsx'
 import { SettingsSheet } from './ui/SettingsSheet.tsx'
+import { SignInScreen } from './ui/SignInScreen.tsx'
 import { TransactionSheet } from './ui/TransactionSheet.tsx'
 import { todayIso } from './ui/dates.ts'
 import { useFinance } from './ui/useFinance.ts'
@@ -26,12 +27,13 @@ type Sheet =
 
 export default function App() {
   const local = useMemo(() => createLocalRepo(), [])
-  const { session, configured } = useSession()
+  const { ready: sessionReady, session, configured } = useSession()
 
   /**
-   * Signed in, the local store gains a cloud counterpart; signed out it is the
-   * whole app, exactly as before. Nothing else in the app knows the difference
-   * — every screen still talks to a FinanceRepo.
+   * With a session the local store gains a cloud counterpart. The plain local
+   * store is still the fallback, but nothing is rendered without a session, so
+   * in practice it only stands in for the moment before one arrives. Nothing
+   * else in the app knows the difference — every screen talks to a FinanceRepo.
    */
   const repo = useMemo(() => {
     if (!supabase || !session) return local
@@ -106,6 +108,13 @@ export default function App() {
       occurredOn: todayIso(),
     })
   }
+
+  // The front door. Until someone is through it there are no tins, no history
+  // and no settings — signed out, this app has nothing to show. An existing
+  // session is read from this browser rather than from the network, so a
+  // device that is already signed in still opens with no connection.
+  if (!sessionReady) return <div className="loading">Opening the tins…</div>
+  if (!session) return <SignInScreen configured={configured} />
 
   if (!finance.ready) return <div className="loading">Opening the tins…</div>
 
@@ -252,7 +261,6 @@ export default function App() {
           onExport={finance.exportSnapshot}
           onImport={finance.importSnapshot}
           onClose={closeSheet}
-          cloudConfigured={configured}
           session={session}
           syncStatus={syncStatus}
           onSyncNow={() => {

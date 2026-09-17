@@ -13,7 +13,6 @@ export function SettingsSheet({
   onExport,
   onImport,
   onClose,
-  cloudConfigured,
   session,
   syncStatus,
   onSyncNow,
@@ -23,8 +22,7 @@ export function SettingsSheet({
   onExport: () => Promise<Snapshot>
   onImport: (snapshot: Snapshot) => Promise<void>
   onClose: () => void
-  cloudConfigured: boolean
-  session: Session | null
+  session: Session
   syncStatus: SyncStatus | null
   onSyncNow: () => void
 }) {
@@ -69,16 +67,12 @@ export function SettingsSheet({
           </select>
         </Field>
 
-        {cloudConfigured ? (
-          <SyncPanel session={session} status={syncStatus} onSyncNow={onSyncNow} />
-        ) : null}
+        <SyncPanel session={session} status={syncStatus} onSyncNow={onSyncNow} />
 
         <div className="backup">
           <h3>Backup</h3>
           <p className="backup__text">
-            {session
-              ? 'A backup file is a copy you hold yourself, separate from the cloud.'
-              : "This app keeps everything in this browser on this device. Clearing the browser's site data erases it, so save a copy somewhere safe."}
+            A backup file is a copy you hold yourself, separate from the cloud.
           </p>
           <div className="backup__actions">
             <Button onClick={() => void download()}>Save a backup file</Button>

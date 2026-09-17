@@ -14,12 +14,22 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
 export const cloudConfigured = Boolean(url && anonKey)
 
+/** The project's own address and public key, for the one call made without the client. */
+export const cloudUrl = url ?? ''
+export const cloudAnonKey = anonKey ?? ''
+
 export const supabase: SupabaseClient | null = cloudConfigured
   ? createClient(url!, anonKey!, {
       auth: {
-        // The sign-in link comes back with the session in the URL; picking it
-        // up automatically is what makes the link work in one tap.
+        // Google sends the browser back here to finish signing in; picking that
+        // up automatically is what makes the round trip invisible.
         detectSessionInUrl: true,
+        // Come back holding a one-use code rather than the session itself. The
+        // default hands the access token over in the address bar, which puts it
+        // in browser history and in anything reading the URL. The code is worth
+        // nothing without a secret this browser kept to itself, so it is only
+        // ever this browser that finishes the sign-in.
+        flowType: 'pkce',
         persistSession: true,
         autoRefreshToken: true,
       },

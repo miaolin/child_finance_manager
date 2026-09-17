@@ -1,9 +1,13 @@
 /**
  * Who is signed in, if anyone.
  *
- * With no cloud configured this reports "not signed in" forever and the app
- * carries on storing everything locally, which is the point: the cloud is an
- * addition, not a requirement.
+ * With no cloud configured this reports "not signed in" forever — and since
+ * signing in is now the way into the app, that state is a front door with no
+ * handle. The sign-in screen says as much rather than letting anyone past it.
+ *
+ * The first answer comes from this browser's own copy of the session, not from
+ * the network, which is what lets a device that is already signed in open with
+ * no connection at all.
  */
 
 import { useEffect, useState } from 'react'
