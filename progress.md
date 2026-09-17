@@ -146,3 +146,41 @@ several targets were 34px, and an iPad showed a phone layout on a large screen.
 | No sideways scroll, 320→1194px | none at any width | none, on every screen | pass |
 | Sheet open | page behind held still | body pinned, offset restored on close | pass |
 | Service worker | shell cached, opens offline | app loaded with the server stopped | pass |
+
+## Session: 2026-09-17 — a front door
+
+### Why
+The deployed link opened straight into the app. Signing in existed, but only
+as a switch for sync, tucked inside Settings — so the records were guarded by
+nothing but the obscurity of the URL. The ask was for the arrangement the
+English study app uses: a Google button, and nothing visible until someone is
+through it.
+
+### Done
+- `AuthForm` — Google plus the existing email and password, shared by the gate
+  and nothing else; `SignInScreen` — the gate itself
+- `App` renders the gate whenever there is no session, ahead of every screen
+- Supabase switched from the implicit flow to PKCE, so the access token stops
+  travelling in the address bar
+- The Google button asks `/auth/v1/settings` whether the provider is on before
+  offering itself; switched off, the screen explains instead
+- `SyncPanel` lost its signed-out half — unreachable now — and became the
+  account panel: who is signed in, what sync is doing, the way out
+- README rewritten around sign-in being required, with the Google Cloud and
+  Supabase steps; CHANGELOG 4.0.0
+
+### Test Results
+| Test | Expected | Actual | Status |
+|------|----------|--------|--------|
+| Unit suite | green | 81 passed | pass |
+| Typecheck + build | clean | clean | pass |
+| Lint | no new warnings | 3 pre-existing, unchanged | pass |
+| Gate with keys present | sign-in screen, no tins | as expected | pass |
+| Google button, provider off | explanation, no dead-end button | as expected | pass |
+| Redirect wiring | PKCE challenge, returns to app, account chooser | `/authorize?provider=google&code_challenge=…&prompt=select_account` | pass |
+| Google round trip end to end | signs in | **not run** — provider not yet enabled on the project | blocked |
+
+### Left for the owner
+Enabling Google in Supabase needs a Google Cloud OAuth client, which is an
+account only they can sign into. Until that is done the Google button stays
+hidden and the email and password are the way in. README step 4 has it.
